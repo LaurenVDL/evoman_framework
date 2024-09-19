@@ -16,9 +16,6 @@ import random
 import numpy as np
 
 
-
-
-
 experiment_name = 'dummy_demo'
 if not os.path.exists(experiment_name):
     os.makedirs(experiment_name)
@@ -43,13 +40,24 @@ env = Environment(experiment_name=experiment_name,
                   visuals=False)
 
 
-
-
 n_vars = (env.get_num_sensors()+1)*n_hidden_neurons + (n_hidden_neurons+1)*5
-
 
 pop = np.random.uniform(dom_l, dom_u, (npop, n_vars))
 #fit_pop = evaluate(pop)
+
+
+#WE NEED TO CHECK IF WE ARE ALLOWED TO USE THIS
+# runs simulation
+def simulation(env,x):
+    f,p,e,t = env.play(pcont=x)
+    return f
+
+
+#WE NEED TO CHECK IF WE ARE ALLOWED TO USE THIS
+# evaluation
+def evaluate(x):
+    return np.array(list(map(lambda y: simulation(env,y), x)))
+
 
 
 def crossover(pop):
@@ -77,20 +85,18 @@ def crossover(pop):
             child1 = parent1[:]
             child2 = parent2[:]
         
-        # Add the children to the new population
         new_population.append(child1)
         new_population.append(child2)
     
-    return new_population
+    return np.array(new_population)
 
 
 
+new_pop = crossover(pop)
 
 
 
-
-
-
+fit_offspring = evaluate(new_pop)   # evaluation
 
 
 
