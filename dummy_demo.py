@@ -17,3 +17,5 @@ if not os.path.exists(experiment_name):
 env = Environment(experiment_name=experiment_name)
 env.play()
 
+for i in range(0,5):
+    print(i)
