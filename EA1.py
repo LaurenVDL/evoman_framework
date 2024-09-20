@@ -1,10 +1,4 @@
-################################
-# EvoMan FrameWork - V1.0 2016 #
-# Author: Karine Miras         #
-# karine.smiras@gmail.com      #
-################################
-
-# imports framework
+e
 import sys, os
 
 os.chdir('C:\\Users\\charl\\OneDrive\\Documents\\GitHub\\evoman_framework')
@@ -177,26 +171,3 @@ def selection(pop):
     
     return new generation 
     
-EA1 non clustering vs EA2 clustering. If with clustering you get a significantly higher average fitness level after a fixed amount of generations. 
-
-
-
-
-
-# Measure time for crossover_uniform
-start_time = time.time()
-new_pop_uniform = crossover_uniform(pop)
-end_time = time.time()
-print(f"crossover_uniform took {end_time - start_time:.4f} seconds")
-
-
-
-start_time = time.time()
-new_pop_n_point = crossover_n_point(pop)
-end_time = time.time()
-print(f"crossover_n_point took {end_time - start_time:.4f} seconds")
-
-
-#new_pop_uniform = evaluate(new_pop)   # evaluation
-#new_pop_n_point = evaluate(new_pop)   # evaluation
-
