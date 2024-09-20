@@ -1,4 +1,4 @@
-e
+
 import sys, os
 
 os.chdir('C:\\Users\\charl\\OneDrive\\Documents\\GitHub\\evoman_framework')
@@ -19,7 +19,7 @@ if not os.path.exists(experiment_name):
 
 n_hidden_neurons=10
 npop = 100
-prob_c = 0.8 #probability for doing the crossover
+prob_c = 0.3 #probability for doing the crossover
 prob_m = 0.1 #probability if a mutation will accur in a individual
 dom_u = 1
 dom_l = -1
@@ -116,6 +116,8 @@ def crossover_uniform(pop):
         
         new_population.append(child1)
         new_population.append(child2)
+        new_population.append(parent1)
+        new_population.append(parent2)
     
     return np.array(new_population)
 
@@ -128,7 +130,7 @@ def crossover_n_point(pop):
     num_individuals, num_genes = pop.shape
     new_population = []
     
-
+    
         
     for i in range(0, num_individuals, 2):
         parent1 = pop[i]
@@ -154,20 +156,32 @@ def crossover_n_point(pop):
             # Concatenate segments to form children
             child1 = np.concatenate(child1_segments)
             child2 = np.concatenate(child2_segments)
+            new_population.append(child1)
+            new_population.append(child2)
+        # else:
+        #  # If no crossover happens, children are copies of parents
+        #     child1 = np.copy(parent1)
+        #     child2 = np.copy(parent2)
             
-        else:
-         # If no crossover happens, children are copies of parents
-            child1 = np.copy(parent1)
-            child2 = np.copy(parent2)
+            # new_population.append(child1)
+            # new_population.append(child2)
             
-        new_population.append(child1)
-        new_population.append(child2)
+            
+        new_population.append(parent1)
+        new_population.append(parent2)
     
     return np.array(new_population)
 
 
-def selection(pop):
-    #decide who goes through to the next generation
+start_time = time.time()
+new_pop_n_point = crossover_n_point(pop)
+end_time = time.time()
+
+
+
+
+# def selection(pop):
+#     #decide who goes through to the next generation
     
-    return new generation 
+#     return new generation 
     
