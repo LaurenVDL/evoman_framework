@@ -65,7 +65,7 @@ def evaluate(x):
 
 
 
-def mutation(pop, mutation_strength=0.1):
+def mutation(pop):
     
     
     mutated_pop = np.copy(pop)
@@ -81,14 +81,14 @@ def mutation(pop, mutation_strength=0.1):
                 column1 = np.random.randint(0, n_vars)
                 column2 = np.random.randint(0, n_vars)
                 
-                print(column1)
+                #print(column1)
                 #individual[:, [column1, column2]] = individual[:, [column2, column1]]
 
         
     return mutated_pop
 
     
-mut = mutation(pop, mutation_strength=0.1)
+mut = mutation(pop)
 
 def crossover_uniform(pop):
     new_population = []
