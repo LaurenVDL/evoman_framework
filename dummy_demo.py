@@ -26,9 +26,11 @@ if not os.path.exists(experiment_name):
 n_hidden_neurons=10
 npop = 100
 prob_c = 0.8 #probability for doing the crossover
+prob_m = 0.1 #probability if a mutation will accur in a individual
 dom_u = 1
 dom_l = -1
 n_points = 2
+max_swaps = 10
 
 
 # initializes simulation in individual evolution mode, for single static enemy.
@@ -62,16 +64,45 @@ def evaluate(x):
 
 
 
+
+def mutation(pop, mutation_strength=0.1):
+    
+    
+    mutated_pop = np.copy(pop)
+    
+    for individual in mutated_pop:
+        if np.random.rand() < prob_m:
+            # Get the number of weights (shape[0] * shape[1])
+
+            num_swaps = np.random.randint(1, max_swaps)  # Randomly choosing 1 to 10 swaps, we can change also to fixed amount of swaps or more swaps
+            
+            for _ in range(num_swaps):
+                # Randomly choose two positions in the weights array to swap
+                column1 = np.random.randint(0, n_vars)
+                column2 = np.random.randint(0, n_vars)
+                
+                print(column1)
+                #individual[:, [column1, column2]] = individual[:, [column2, column1]]
+
+        
+    return mutated_pop
+
+    
+mut = mutation(pop, mutation_strength=0.1)
+
 def crossover_uniform(pop):
     new_population = []
     
     
-    if random.random() < prob_c:
-        for i in range(0, len(pop), 2):
+    
+    for i in range(0, len(pop), 2):
         # we can still add a different way of deciding of which parent
-            parent1 = pop[i]
-            parent2 = pop[i+1]
+
+        parent1 = pop[i]
+        parent2 = pop[i+1]
             
+        if random.random() < prob_c:
+
             child1, child2 = [], []
             
         
@@ -84,10 +115,10 @@ def crossover_uniform(pop):
                 else:  # Tails
                     child1.append(gene2)
                     child2.append(gene1)
-    else:
+        else:
             # If no crossover happens, children are copies of parents
-        child1 = parent1[:]
-        child2 = parent2[:]
+            child1 = parent1[:]
+            child2 = parent2[:]
         
         new_population.append(child1)
         new_population.append(child2)
@@ -99,16 +130,17 @@ def crossover_uniform(pop):
 new_pop = crossover_uniform(pop)
 
 
-def crossover_n_point(pop, prob_c, n_points):
+def crossover_n_point(pop):
     num_individuals, num_genes = pop.shape
     new_population = []
     
-    
-    if random.random() < prob_c:
-        for i in range(0, num_individuals, 2):
-            parent1 = pop[i]
-            parent2 = pop[i+1]
+
         
+    for i in range(0, num_individuals, 2):
+        parent1 = pop[i]
+        parent2 = pop[i+1]
+            
+        if random.random() < prob_c:
        
             # Generate sorted unique crossover points
             crossover_points = sorted(random.sample(range(1, num_genes), n_points))
@@ -129,11 +161,11 @@ def crossover_n_point(pop, prob_c, n_points):
             child1 = np.concatenate(child1_segments)
             child2 = np.concatenate(child2_segments)
             
-    else:
+        else:
          # If no crossover happens, children are copies of parents
-        child1 = np.copy(parent1)
-        child2 = np.copy(parent2)
-        
+            child1 = np.copy(parent1)
+            child2 = np.copy(parent2)
+            
         new_population.append(child1)
         new_population.append(child2)
     
@@ -155,11 +187,11 @@ print(f"crossover_uniform took {end_time - start_time:.4f} seconds")
 
 
 start_time = time.time()
-new_pop_n_point = crossover_n_point(new_pop, n_points)
+new_pop_n_point = crossover_n_point(pop)
 end_time = time.time()
 print(f"crossover_n_point took {end_time - start_time:.4f} seconds")
 
 
-new_pop_uniform = evaluate(new_pop)   # evaluation
-new_pop_n_point = evaluate(new_pop)   # evaluation
+#new_pop_uniform = evaluate(new_pop)   # evaluation
+#new_pop_n_point = evaluate(new_pop)   # evaluation
 
