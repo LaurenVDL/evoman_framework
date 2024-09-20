@@ -29,7 +29,7 @@ prob_c = 0.8 #probability for doing the crossover
 prob_m = 0.1 #probability if a mutation will accur in a individual
 dom_u = 1
 dom_l = -1
-n_points = 2
+n_points = 100
 max_swaps = 10
 
 
@@ -173,6 +173,7 @@ def crossover_n_point(pop):
 
 
 
+EA1 non clustering vs EA2 clustering. If with clustering you get a significantly higher average fitness level after a fixed amount of generations. 
 
 
 
