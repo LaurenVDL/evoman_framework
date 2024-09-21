@@ -177,7 +177,7 @@ def selection(pop):
     
     return new generation 
     
-EA1 non clustering vs EA2 clustering. If with clustering you get a significantly higher average fitness level after a fixed amount of generations. 
+#EA1 non clustering vs EA2 clustering. If with clustering you get a significantly higher average fitness level after a fixed amount of generations. 
 
 
 
