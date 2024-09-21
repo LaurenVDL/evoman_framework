@@ -44,21 +44,18 @@ pop = np.random.uniform(dom_l, dom_u, (npop, n_vars))
 #fit_pop = evaluate(pop)
 
 
-#WE NEED TO CHECK IF WE ARE ALLOWED TO USE THIS
 # runs simulation
 def simulation(env,x):
     f,p,e,t = env.play(pcont=x)
     return f
 
 
-#WE NEED TO CHECK IF WE ARE ALLOWED TO USE THIS
 # evaluation
 def evaluate(x):
     return np.array(list(map(lambda y: simulation(env,y), x)))
 
 
-
-
+#NOT FINISHED YET
 def mutation(pop):
     
     
@@ -76,54 +73,13 @@ def mutation(pop):
                 column2 = np.random.randint(0, n_vars)
                 
                 #print(column1)
+                #STILL NEED TO FIX THIS LINE, how to swap columns
                 #individual[:, [column1, column2]] = individual[:, [column2, column1]]
 
         
     return mutated_pop
 
-    
-mut = mutation(pop)
 
-def crossover_uniform(pop):
-    new_population = []
-    
-    
-    
-    for i in range(0, len(pop), 2):
-        # we can still add a different way of deciding of which parent
-
-        parent1 = pop[i]
-        parent2 = pop[i+1]
-            
-        if random.random() < prob_c:
-
-            child1, child2 = [], []
-            
-        
-            # For each gene in the parents ( we can still change this to a n.point)
-            for gene1, gene2 in zip(parent1, parent2):
-                # Flip a coin 
-                if random.randint(0, 1) == 0:  
-                    child1.append(gene1)
-                    child2.append(gene2)
-                else:  # Tails
-                    child1.append(gene2)
-                    child2.append(gene1)
-        else:
-            # If no crossover happens, children are copies of parents
-            child1 = parent1[:]
-            child2 = parent2[:]
-        
-        new_population.append(child1)
-        new_population.append(child2)
-        new_population.append(parent1)
-        new_population.append(parent2)
-    
-    return np.array(new_population)
-
-
-
-new_pop = crossover_uniform(pop)
 
 
 def crossover_n_point(pop):
@@ -158,13 +114,7 @@ def crossover_n_point(pop):
             child2 = np.concatenate(child2_segments)
             new_population.append(child1)
             new_population.append(child2)
-        # else:
-        #  # If no crossover happens, children are copies of parents
-        #     child1 = np.copy(parent1)
-        #     child2 = np.copy(parent2)
-            
-            # new_population.append(child1)
-            # new_population.append(child2)
+
             
             
         new_population.append(parent1)
