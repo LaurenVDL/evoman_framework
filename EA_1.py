@@ -17,9 +17,8 @@ class DataGatherer:
         self.best_gen = -1  # Generation where best solution is found
         self.stats = []
         
-        if not os.path.exists(name):
-            os.mkdir(name)
-            os.mkdir(name + "/best")
+        # Create main directory and 'best' subdirectory
+        os.makedirs(os.path.join(name, "best"), exist_ok=True)
 
     def gather(self, pop, pop_fit, gen):
         current_mean = np.mean(pop_fit)
@@ -38,21 +37,35 @@ class DataGatherer:
         # Stack the gathered data
         self.stats = np.stack([self.generations, self.mean_fitness, self.std_fitness, self.best_fitness])
 
-        # Save stats and best solution
-        np.savetxt(f"{self.name}/stats.out", self.stats.T, delimiter=',', fmt='%1.2e')
+        # Save stats without header
+        np.savetxt(f"{self.name}/stats.out", self.stats.T, delimiter=',', fmt='%.6f')
+
+        # Save best solution
         np.savetxt(f"{self.name}/best/{gen}.out", pop[np.argmax(pop_fit)], delimiter=',', fmt='%1.2e')
 
         # Save the simulation state for future evaluation
+        solutions = [pop, pop_fit]
+        env.update_solutions(solutions)
         env.save_state()
+
+    def add_header_to_stats(self):
+        header = "Generation,Mean_Fitness,Std_Fitness,Best_Fitness\n"
+        
+        # Read existing content
+        with open(f"{self.name}/stats.out", 'r') as f:
+            content = f.read()
+        
+        # Write header and content
+        with open(f"{self.name}/stats.out", 'w') as f:
+            f.write(header + content)
 
 # Set headless mode for faster simulation
 headless = True
 if headless:
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
-experiment_name = 'n_point_crossover_test'
-if not os.path.exists(experiment_name):
-    os.makedirs(experiment_name)
+experiment_name = 'EA_1'
+os.makedirs(experiment_name, exist_ok=True)
 
 n_hidden_neurons = 10
 
@@ -75,10 +88,12 @@ start_time = time.time()
 n_vars = (env.get_num_sensors() + 1) * n_hidden_neurons + (n_hidden_neurons + 1) * 5
 dom_u = 1
 dom_l = -1
-npop = 100
+#npop = 100
+mu = 100  # Number of parents
+lambda_ = 200  # Number of children
 gens = 30
 mutation_rate = 0.2
-n_points = 2  # Number of crossover points
+n_points = 5  # Number of crossover points
 prob_c = 0.7  # Probability of crossover occurring
 
 # Data Gatherer instance
@@ -137,7 +152,7 @@ def swap_mutation(individual):
 
 # Tournament selection
 def tournament_selection(pop, fitness):
-    i1, i2 = np.random.randint(0, npop, 2)
+    i1, i2 = np.random.randint(0, len(pop), 2)
     return pop[i1] if fitness[i1] > fitness[i2] else pop[i2]
 
 # Apply limits to genes
@@ -147,7 +162,7 @@ def apply_limits(individual):
 # Main evolution function
 def evolve_population(population, fitness):
     new_population = []
-    for _ in range(npop // 2):
+    for _ in range(lambda_ // 2):       # Generating λ offspring from μ parents
         # Select parents
         parent1 = tournament_selection(population, fitness)
         parent2 = tournament_selection(population, fitness)
@@ -169,21 +184,29 @@ def evolve_population(population, fitness):
     return np.array(new_population)
 
 # Initialize population
-population = np.random.uniform(dom_l, dom_u, (npop, n_vars))
+population = np.random.uniform(dom_l, dom_u, (mu, n_vars))
 fitness = evaluate(population)
 
 # Evolution loop
 for generation in range(gens):
     print(f'Generation {generation}, Best fitness: {np.max(fitness)}')
 
-    # Evolve population
-    population = evolve_population(population, fitness)
-
-    # Evaluate the new population
-    fitness = evaluate(population)
+    # Generate offspring population
+    offspring_population = evolve_population(population, fitness)
+    
+    # Evaluate offspring
+    offspring_fitness = evaluate(offspring_population)
+    
+    # Select the best μ individuals from the offspring (Comma strategy) - survival selection
+    best_indices = np.argsort(offspring_fitness)[-mu:]
+    population = offspring_population[best_indices]
+    fitness = offspring_fitness[best_indices]
 
     # Gather data
     data_gatherer.gather(population, fitness, generation)
+
+# After all generations are complete
+data_gatherer.add_header_to_stats()
 
 # Track the end time
 end_time = time.time()
