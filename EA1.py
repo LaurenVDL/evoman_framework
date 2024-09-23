@@ -79,7 +79,7 @@ def mutation(pop):
     return mutated_pop
 
 
-mutation(pop)
+bla = mutation(pop)
 
 def crossover_n_point(pop):
     num_individuals, num_genes = pop.shape
