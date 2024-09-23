@@ -37,6 +37,7 @@ dom_l = -1
 n_points = 125
 max_swaps = 10
 min_samples= 5
+amount_of_generations = 30
 
 
 # initializes simulation in individual evolution mode, for single static enemy.
@@ -141,9 +142,9 @@ def crossover_n_point(pop):
 #cluster part
 
 
-def scale_population(population):
-    scaler = StandardScaler()
-    return scaler.fit_transform(population)
+# def scale_population(population):
+#     scaler = StandardScaler()
+#     return scaler.fit_transform(population)
 
 
 def adjust_eps(generation, max_generations):
@@ -290,7 +291,7 @@ def run_generations_EA2(pop, amount_generations):
 #EA1 
 
 
-def selection(population, num_best=100):
+def selection(population, num_best=npop):
     # Compute fitness scores for each individual
     
 
@@ -319,7 +320,6 @@ def run_generations_EA1(pop, amount_generations):
 
 #-----------------------------------------------------------------------------------------
 
-amount_of_generations = 30
         
 new_pop = run_generations_EA2(start_pop, amount_of_generations)
 new_pop = evaluate(new_pop)
