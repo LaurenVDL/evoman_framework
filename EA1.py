@@ -73,12 +73,14 @@ def mutation(pop):
                 column2 = np.random.randint(0, n_vars)
                 
                 #print(column1)
-                #STILL NEED TO FIX THIS LINE, how to swap columns
-                individual[[column1, column2]] = individual[[column2, column1]]
+                # Swap the values at the selected columns
+                individual[column1], individual[column2] = individual[column2], individual[column1]
+                #individual[[column1, column2]] = individual[[column2, column1]]
 
     return mutated_pop
 
 
+#mutation(pop)
 
 def crossover_n_point(pop):
     num_individuals, num_genes = pop.shape
