@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Tue Sep 24 11:22:16 2024
+
+@author: charl
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Fri Sep 20 16:38:55 2024
 
 @author: charl
@@ -104,14 +111,9 @@ def crossover_n_point(pop):
     
     
     fitness = evaluate(pop)
-    # if len(pop) % 2 != 0:
-    #    #pop = pop[:-1]
-    #    random_index = random.randint(0, len(pop) - 1)  # Generate a random index
-    #    pop.pop(random_index)  # Remove the individual at the random index
-    #for i in range(0, num_individuals, 2):
+
     for _ in range(lambda_ // 2):
-        # parent1 = pop[i]
-        # parent2 = pop[i+1]
+
         parent1 = tournament_selection(pop, fitness)
         parent2 = tournament_selection(pop, fitness)  
         if random.random() < prob_c:
@@ -152,17 +154,13 @@ def crossover_n_point(pop):
 #cluster part
 
 
-# def scale_population(population):
-#     scaler = StandardScaler()
-#     return scaler.fit_transform(population)
-
 
 def adjust_eps(generation, max_generations):
     # Gradually reduce eps as we approach the final generation
-    initial_eps = 2.0
-    final_eps = 1
+    initial_eps = 1
+    final_eps = 0.1
     
-    return 1 # initial_eps - (initial_eps - final_eps) * (generation / max_generations)
+    return  initial_eps - (initial_eps - final_eps) * (generation / max_generations)
 
 
 
@@ -174,122 +172,85 @@ def group_individuals_by_clusters(population, labels):
         if label not in clusters:
             clusters[label] = []  # Create a new cluster if it doesn't exist
         clusters[label].append(ind)  # Add the individual to the corresponding cluster
-    
     return clusters
 
 
 
 
-def select_fitessed(clusters, desired_size):
+def select_fitessed(label, individuals, desired_size):
     selected = []
-    total_individuals = sum(len(individuals) for individuals in clusters.values())
+    total_individuals = lambda_ + desired_size
     
-    # Iterate over clusters to select individuals based on the cluster size
-    for label, individuals in clusters.items():
-        if len(individuals) == 0:
-            continue  # Skip empty clusters
-
-        # Calculate the number of individuals to select from this cluster
-        cluster_size = len(individuals)
-        ratio = cluster_size / total_individuals
-        num_to_select = max(0, int(ratio * desired_size))  # Ensure at least one is selected if the cluster is non-empty
-
-        # Evaluate fitness for individuals
-        fitness_scores = evaluate(individuals)  # This returns a numpy array of fitness scores
-        #print(mean(fitness_scores))
-
-        # Combine individuals with their fitness scores
-        individuals_with_fitness = list(zip(individuals, fitness_scores))
-
-        # Sort individuals by fitness and select the fittest
-        sorted_individuals = sorted(individuals_with_fitness, key=lambda pair: pair[1], reverse=True)
-        selected.extend([ind for ind, _ in sorted_individuals[:num_to_select]])
-
-    # If we still need more individuals, fill from noise (if applicable)
-    if len(selected) < desired_size:
-        noise_individuals = clusters.get(-1, [])  # Get noise individuals if any
-        needed = desired_size - len(selected)
-        
-        # Evaluate fitness for noise individuals
-        noise_fitness_scores = evaluate(noise_individuals)
-        noise_individuals_with_fitness = list(zip(noise_individuals, noise_fitness_scores))
-        
-        # Sort noise individuals by fitness
-        sorted_noise = sorted(noise_individuals_with_fitness, key=lambda pair: pair[1], reverse=True)
-        selected.extend([ind for ind, _ in sorted_noise[:needed]])
-    # Print the total number of clusters
-    total_clusters = len(clusters)
-    print(f"Total number of clusters: {total_clusters}")
-
-    return np.array(selected, dtype=np.float64)  # Ensure the final size is exactly desired_size
 
 
+    # Calculate the number of individuals to select from this cluster
+    cluster_size = len(individuals)
+    ratio = cluster_size / total_individuals
+    num_to_select = max(0, int(ratio * desired_size))  # Ensure at least one is selected if the cluster is non-empty
 
-def selection_desired_population_size(population, max_generations, number_generation):
-    # Normalize the population
-    #scaled_population = scale_population(population)
+    # Evaluate fitness for individuals
+    fitness_scores = evaluate(individuals)  # This returns a numpy array of fitness scores
+    #print(mean(fitness_scores))
 
-    # Adjust epsilon dynamically based on progress
-    eps = adjust_eps(number_generation, max_generations)
-    #print(f"Adjusted epsilon for generation {number_generation}: {eps}")
-    dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+    # Combine individuals with their fitness scores
+    individuals_with_fitness = list(zip(individuals, fitness_scores))
 
-    # Fit DBSCAN on the scaled population
-    dbscan.fit(population)
-    labels = dbscan.labels_
+    # Sort individuals by fitness and select the fittest
+    sorted_individuals = sorted(individuals_with_fitness, key=lambda pair: pair[1], reverse=True)
+    selected.extend([ind for ind, _ in sorted_individuals[:num_to_select]])
 
-    # Group individuals by clusters
-    clusters = group_individuals_by_clusters(population, labels)
-    selected_population = select_fitessed(clusters, desired_size=npop)
 
-    return np.array(selected_population, dtype=np.float64)
+    return selected # Ensure the final size is exactly desired_size
+
+
 
 
 
 
 
 def run_generations_EA2(pop, amount_generations):
-    for i in range(1, amount_generations):
+    for i in range(0, amount_generations):
         # Step 1: Normalize the population
         #scaled_population = scale_population(pop)
         
         print(np.max(evaluate(pop)))
 
         # Step 2: Cluster the population
-        eps = adjust_eps(i, amount_generations)
-        #print(f"Adjusted epsilon for generation {i}: {eps}")
-        dbscan = DBSCAN(eps=eps, min_samples=min_samples)
-        
-        labels = dbscan.fit_predict(pop)  # Get cluster labels
-
-        # Step 3: Group individuals by clusters
-        clusters = group_individuals_by_clusters(pop, labels)
+        if i % 5 == 0:
+            print(i)
+            eps = adjust_eps(i, amount_generations)
+            #print(f"Adjusted epsilon for generation {i}: {eps}")
+            dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+            
+            labels = dbscan.fit_predict(pop)  # Get cluster labels
+    
+            # Step 3: Group individuals by clusters
+            clusters = group_individuals_by_clusters(pop, labels)
 
         # Step 4: Initialize a list for the new population
         new_population = []
 
         # Step 5: Perform crossover within each cluster
         for label, individuals in clusters.items():
-            
-    
-            # Perform crossover within the current cluster
-            if len(individuals) % 2 != 0:
-               individuals = individuals[:-1]  # Remove the last individual   need to change if needed
             if len(individuals) >=2:
                 cluster_offspring = crossover_n_point(np.array(individuals))
-                new_population.extend(cluster_offspring)
-       
+                clusters[label] = cluster_offspring
+                new_population.extend(cluster_offspring)  # Add all individuals from each cluster to the list
 
+# Convert the list of individuals into a NumPy array with dtype float64
+        all_individuals_array = np.array(new_population, dtype=np.float64)
+
+        total_clusters = len(clusters)
+        print(f"Total number of clusters: {total_clusters}")
         # Step 6: Check if new_population is empty before proceeding
         if not new_population:
             print(f"No offspring generated in generation {i}.")
             
 
         # Convert new_population to a numpy array
-        new_population = np.array(new_population)
+        new_generation = all_individuals_array
 
         # Step 7: Select the best individuals from the combined population
-        new_generation = selection_desired_population_size(new_population, amount_generations, i)
 
         # Update population for the next generation
         pop = new_generation
@@ -297,38 +258,6 @@ def run_generations_EA2(pop, amount_generations):
     return pop
 
 
-#-----------------------------------------------------------------------------------
-#EA1 
-
-
-# def selection(population, num_best=npop):
-#     # Compute fitness scores for each individual
-    
-
-#     fitness_scores = evaluate(population)  # This returns a numpy array of fitness scores
-#     print(np.max(fitness_scores))
-        
-#     # Pair individuals with their fitness scores
-#     individuals_with_fitness = list(zip(population, fitness_scores))
-    
-#     # Sort by fitness scores in descending order
-#     sorted_individuals = sorted(individuals_with_fitness, key=lambda pair: pair[1], reverse=True)
-    
-#     # Select the top individuals based on fitness scores
-#     top_individuals = [ind for ind, _ in sorted_individuals[:num_best]]
-    
-#     return np.array(top_individuals, dtype=np.float64)
-    
-
-# def run_generations_EA1(pop, amount_generations):
-
-#     for i in range(0,amount_generations):
-#         new_pop_n_point = crossover_n_point(pop)
-#         new_generation = selection(new_pop_n_point)
-#         pop = new_generation
-#     return pop
-
-#-----------------------------------------------------------------------------------------
 
         
 new_pop = run_generations_EA2(start_pop, amount_of_generations)
@@ -348,6 +277,5 @@ print(mean(new_pop_ev))
     
 # print(np.max(begin_pop))
 print(np.max(new_pop_ev))
-
 
 
