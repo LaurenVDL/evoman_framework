@@ -103,7 +103,7 @@ def mutation(pop):
 
 
 
-def crossover_n_point(pop):
+def crossover_n_point(pop, amount_childr):
     #np.random.shuffle(pop)
 
     num_individuals, num_genes = pop.shape
@@ -112,7 +112,7 @@ def crossover_n_point(pop):
     
     fitness = evaluate(pop)
 
-    for _ in range(lambda_ // 2):
+    for _ in range(amount_childr // 2):
 
         parent1 = tournament_selection(pop, fitness)
         parent2 = tournament_selection(pop, fitness)  
@@ -178,7 +178,7 @@ def group_individuals_by_clusters(population, labels):
 
 def select_fitessed(label, individuals, desired_size):
     selected = []
-    total_individuals = lambda_ + desired_size
+    total_individuals = lambda_
     
 
 
@@ -204,9 +204,6 @@ def select_fitessed(label, individuals, desired_size):
 
 
 
-
-
-
 def run_generations_EA2(pop, amount_generations):
     for i in range(0, amount_generations):
         # Step 1: Normalize the population
@@ -216,7 +213,6 @@ def run_generations_EA2(pop, amount_generations):
         print(mean(evaluate(pop)))
         # Step 2: Cluster the population
         if i % 5 == 0:
-            print(i)
             eps = adjust_eps(i, amount_generations)
             #print(f"Adjusted epsilon for generation {i}: {eps}")
             dbscan = DBSCAN(eps=eps, min_samples=min_samples)
@@ -228,11 +224,18 @@ def run_generations_EA2(pop, amount_generations):
 
         # Step 4: Initialize a list for the new population
         new_population = []
-
+        
         # Step 5: Perform crossover within each cluster
         for label, individuals in clusters.items():
             if len(individuals) >=2:
-                cluster_offspring = crossover_n_point(np.array(individuals))
+                
+                amount_childr = len(individuals)/100
+                cluster_size = amount_childr * npop
+                print(cluster_size)
+                cluster_offspring = crossover_n_point(np.array(individuals), int(cluster_size))
+                
+                
+                select_fitessed(label, cluster_offspring, cluster_size)
                 clusters[label] = cluster_offspring
                 new_population.extend(cluster_offspring)  # Add all individuals from each cluster to the list
 
@@ -262,15 +265,15 @@ def run_generations_EA2(pop, amount_generations):
 new_pop = run_generations_EA2(start_pop, amount_of_generations)
 new_pop_ev = evaluate(new_pop)
   
-print(mean(new_pop_ev))
-print(np.max(new_pop_ev))
+# print(mean(new_pop_ev))
+# print(np.max(new_pop_ev))
         
 
 
-# print(mean(begin_pop))
-print(mean(new_pop_ev))
+# # print(mean(begin_pop))
+# print(mean(new_pop_ev))
     
-# print(np.max(begin_pop))
-print(np.max(new_pop_ev))
+# # print(np.max(begin_pop))
+# print(np.max(new_pop_ev))
 
 
