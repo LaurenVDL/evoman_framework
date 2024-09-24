@@ -35,18 +35,18 @@ prob_m = 0.4 #probability if a mutation will accur in a individual
 dom_u = 1
 dom_l = -1
 n_points = 125
-max_swaps = 10
+max_swaps = 20
 min_samples= 5
 amount_of_generations = 30
 
 
 # initializes simulation in individual evolution mode, for single static enemy.
 env = Environment(experiment_name=experiment_name,
-                  enemies=[8],
+                  enemies=[7],
                   playermode="ai",
                   player_controller=player_controller(n_hidden_neurons),
                   enemymode="static",
-                  level=2,
+                  level=3,
                   speed="fastest",
                   visuals=False)
 
@@ -98,8 +98,9 @@ def crossover_n_point(pop):
     new_population = []
     
     if len(pop) % 2 != 0:
-       pop = pop[:-1]
-        
+       #pop = pop[:-1]
+       random_index = random.randint(0, len(pop) - 1)  # Generate a random index
+       pop.pop(random_index)  # Remove the individual at the random index
     for i in range(0, num_individuals, 2):
         parent1 = pop[i]
         parent2 = pop[i+1]
@@ -149,10 +150,10 @@ def crossover_n_point(pop):
 
 def adjust_eps(generation, max_generations):
     # Gradually reduce eps as we approach the final generation
-    initial_eps = 1.0
-    final_eps = 0.1
+    initial_eps = 2.0
+    final_eps = 1
     
-    return 1#initial_eps - (initial_eps - final_eps) * (generation / max_generations)
+    return 1 # initial_eps - (initial_eps - final_eps) * (generation / max_generations)
 
 
 
