@@ -104,7 +104,7 @@ def mutation(pop):
 
 
 def crossover_n_point(pop):
-    np.random.shuffle(pop)
+    #np.random.shuffle(pop)
 
     num_individuals, num_genes = pop.shape
     new_population = []
@@ -140,10 +140,9 @@ def crossover_n_point(pop):
             new_population.append(child1)
             new_population.append(child2)
 
-            
-            
-        new_population.append(parent1)
-        new_population.append(parent2)
+        else:
+            new_population.append(parent1)
+            new_population.append(parent2)
     
     new_population = mutation(np.array(new_population))
     return new_population
@@ -160,7 +159,7 @@ def adjust_eps(generation, max_generations):
     initial_eps = 1
     final_eps = 0.1
     
-    return  initial_eps - (initial_eps - final_eps) * (generation / max_generations)
+    return  1 #initial_eps - (initial_eps - final_eps) * (generation / max_generations)
 
 
 
@@ -214,7 +213,7 @@ def run_generations_EA2(pop, amount_generations):
         #scaled_population = scale_population(pop)
         
         print(np.max(evaluate(pop)))
-
+        print(mean(evaluate(pop)))
         # Step 2: Cluster the population
         if i % 5 == 0:
             print(i)
@@ -267,10 +266,6 @@ print(mean(new_pop_ev))
 print(np.max(new_pop_ev))
         
 
-# begin_pop = run_generations_EA1(start_pop,amount_of_generations)
-
-
-# begin_pop = evaluate(begin_pop)
 
 # print(mean(begin_pop))
 print(mean(new_pop_ev))
