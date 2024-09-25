@@ -103,53 +103,6 @@ def mutation(pop):
 
 
 
-# def crossover_n_point(pop, amount_childr):
-
-#     num_individuals, num_genes = pop.shape
-#     new_population = []
-    
-    
-#     fitness = evaluate(pop)
-
-#     for _ in range(amount_childr*2 // 2):
-        
-#         parent1 = tournament_selection(pop, fitness)
-#         parent2 = tournament_selection(pop, fitness)  
-        
-#         # parent1 = pop[i]
-#         # parent2 = pop[i+1]
-#         if random.random() < prob_c:
-       
-#             # Generate sorted unique crossover points
-#             crossover_points = sorted(random.sample(range(1, num_genes), n_points))
-#             # Add start and end points to create slices
-#             crossover_points = [0] + crossover_points + [num_genes]
-            
-#             # Create segments from crossover points
-#             segments1 = [parent1[crossover_points[j]:crossover_points[j+1]] for j in range(len(crossover_points) - 1)]
-#             segments2 = [parent2[crossover_points[j]:crossover_points[j+1]] for j in range(len(crossover_points) - 1)]
-            
-#             # Alternate segments based on 50% chance
-#             prob = random.random()
-#             child1_segments = [segments1[j] if prob < 0.5 else segments2[j] for j in range(len(segments1))]
-#             child2_segments = [segments2[j] if prob < 0.5 else segments1[j] for j in range(len(segments2))]
-            
-#             # Concatenate segments to form children
-#             child1 = np.concatenate(child1_segments)
-#             child2 = np.concatenate(child2_segments)
-            
-#             new_population.append(child1)
-#             new_population.append(child2)
-
-            
-#         else:   
-#             new_population.append(parent1)
-#             new_population.append(parent2)
-    
-   
-#     return mutation(np.array(new_population))
-
-
 # n-point crossover function
 def crossover_n_point(pop):
     num_individuals, num_genes = pop.shape
