@@ -91,12 +91,16 @@ n_vars = (env.get_num_sensors() + 1) * n_hidden_neurons + (n_hidden_neurons + 1)
 dom_u = 1
 dom_l = -1
 npop = 100  # Population size
-mu = 100  # Number of parents
-lambda_ = 200  # Number of children
+mu = 25  # Number of parents
+lambda_ = 50  # Number of children
 gens = 30  # Number of generations
 mutation_rate = 0.2
 n_points = 5  # Number of crossover points
 prob_c = 0.7  # Probability of crossover occurring 
+
+num_islands = 4  # Number of islands
+migration_rate = 0.1  # 10% of each island's individuals migrate
+migration_interval = 5  # Migrate every 5 generations
 
 
 # Data Gatherer instance
@@ -162,97 +166,90 @@ def tournament_selection(pop, fitness):
 def apply_limits(individual):
     return np.clip(individual, dom_l, dom_u)
 
-# DBSCAN clustering for survival selection
-def dbscan_survival_selection(population, fitness, eps=0.5, min_samples=5):
-    # Combine population and fitness for clustering
-    data = np.column_stack((population, fitness.reshape(-1, 1)))
-    
-    # Normalize the data
-    scaler = StandardScaler()
-    data_normalized = scaler.fit_transform(data)
-    
-    # Perform DBSCAN clustering
-    dbscan = DBSCAN(eps=eps, min_samples=min_samples)
-    cluster_labels = dbscan.fit_predict(data_normalized)
-    
-    # Calculate the mean fitness for each cluster
-    unique_labels = set(cluster_labels)
-    cluster_mean_fitness = {}
-    for label in unique_labels:
-        if label != -1:  # Ignore noise points
-            cluster_mean_fitness[label] = np.mean(fitness[cluster_labels == label])
-    
-    # Sort clusters by mean fitness
-    sorted_clusters = sorted(cluster_mean_fitness.items(), key=lambda x: x[1], reverse=True)
-    
-    # Select individuals from top clusters
-    selected_population = []
-    selected_fitness = []
-    for label, _ in sorted_clusters:
-        cluster_individuals = population[cluster_labels == label]
-        cluster_fitness = fitness[cluster_labels == label]
-        
-        # Sort individuals within cluster by fitness
-        sorted_indices = np.argsort(cluster_fitness)[::-1]
-        
-        selected_population.extend(cluster_individuals[sorted_indices])
-        selected_fitness.extend(cluster_fitness[sorted_indices])
-        
-        if len(selected_population) >= mu:
-            break
-    
-    # Trim to exactly mu individuals if we've selected more
-    selected_population = selected_population[:mu]
-    selected_fitness = selected_fitness[:mu]
-    
-    return np.array(selected_population), np.array(selected_fitness)
 
-# Main evolution function
-def evolve_population(population, fitness):
-    offspring_population = []
-    for _ in range(lambda_ // 2):
-        # Select parents
-        parent1 = tournament_selection(population, fitness)
-        parent2 = tournament_selection(population, fitness)
-        
-        # Perform n-point crossover
-        offspring1, offspring2 = crossover_n_point(np.array([parent1, parent2]))
-        
-        # Apply mutation (swap mutation)
-        offspring1 = swap_mutation(offspring1)
-        offspring2 = swap_mutation(offspring2)
-        
-        # Apply limits to offspring
-        offspring1 = apply_limits(offspring1)
-        offspring2 = apply_limits(offspring2)
-        
-        offspring_population.extend([offspring1, offspring2])
+def migrate_between_islands(islands, migration_rate):
+    """Performs migration between islands."""
+    num_islands = len(islands)
+    num_individuals = len(islands[0])
     
-    return np.array(offspring_population)
+    # How many individuals to migrate
+    num_to_migrate = int(num_individuals * migration_rate)
+
+    # Perform circular migration (island i sends individuals to island (i+1) % num_islands)
+    for i in range(num_islands):
+        source_island = islands[i]
+        target_island = islands[(i + 1) % num_islands]
+
+        # Randomly select individuals to migrate
+        migrants = random.sample(list(source_island), num_to_migrate)
+        
+        # Replace weakest individuals in target island with migrants
+        target_fitness = evaluate(target_island)
+        weakest_indices = np.argsort(target_fitness)[:num_to_migrate]  # Select weakest individuals
+        target_island[weakest_indices] = migrants
+
+    return islands
+
+def run_island_model_EA(pop, gens, num_islands, migration_rate, migration_interval):
+    # Step 1: Divide the population into islands
+    island_size = len(pop) // num_islands
+    islands = [pop[i * island_size: (i + 1) * island_size] for i in range(num_islands)]
+    
+    # Evolve for the specified number of generations
+    for generation in range(gens):
+        # print(f'Generation: {generation}')
+        
+        # Step 2: Evolve each island independently
+        for island_index in range(num_islands):
+            island = islands[island_index]
+            fitness = evaluate(island)
+            new_island = []
+            
+            for _ in range(lambda_ // 2):
+                # Select parents and perform crossover & mutation
+                parent1 = tournament_selection(island, fitness)
+                parent2 = tournament_selection(island, fitness)
+                offspring1, offspring2 = crossover_n_point(np.array([parent1, parent2]))
+                offspring1 = swap_mutation(offspring1)
+                offspring2 = swap_mutation(offspring2)
+                offspring1 = apply_limits(offspring1)
+                offspring2 = apply_limits(offspring2)
+                
+                new_island.extend([offspring1, offspring2])
+
+            # Convert offspring population to array and evaluate fitness
+            offspring_pop = np.array(new_island)
+            offspring_fitness = evaluate(offspring_pop)
+            
+            # (μ, λ)-selection: Select the best μ individuals from λ offspring
+            best_indices = np.argsort(offspring_fitness)[-mu:]
+            selected_offspring = offspring_pop[best_indices]
+            
+            # Step 3: Replace the island population with the offspring
+            islands[island_index] = selected_offspring
+        
+        # Step 4: Every migration_interval generations, migrate individuals between islands
+        if generation % migration_interval == 0 and generation != 0:
+            islands = migrate_between_islands(islands, migration_rate)
+
+        # Gather global statistics across all islands
+        all_individuals = np.concatenate(islands)
+        global_fitness = evaluate(all_individuals)
+
+        print(f'Generation: {generation}, Best fitness: {np.max(global_fitness)}')
+        
+        data_gatherer.gather(all_individuals, global_fitness, generation)
+        # # Print or log statistics (best fitness, mean fitness, standard deviation)
+        # print(f'Best fitness across all islands: {np.max(global_fitness)}')
+        # print(f'Mean fitness across all islands: {np.mean(global_fitness)}')
+        # print(f'Standard deviation of fitness: {np.std(global_fitness)}')
+
+    # At the end, combine all islands to form the final population
+    return np.concatenate(islands)
 
 # Initialize population
 population = np.random.uniform(dom_l, dom_u, (npop, n_vars))
-fitness = evaluate(population)
-
-# Evolution loop
-for generation in range(gens):
-    print(f'Generation {generation}, Best fitness: {np.max(fitness)}')
-
-    # Generate offspring population
-    offspring_population = evolve_population(population, fitness)
-    
-    # Evaluate offspring
-    offspring_fitness = evaluate(offspring_population)
-    
-    # Combine parent and offspring populations
-    combined_population = np.vstack((population, offspring_population))
-    combined_fitness = np.concatenate((fitness, offspring_fitness))
-    
-    # Use DBSCAN for survival selection
-    population, fitness = dbscan_survival_selection(combined_population, combined_fitness)
-
-    # Gather data (assuming you have a data_gatherer object)
-    data_gatherer.gather(population, fitness, generation)
+final_population = run_island_model_EA(population, gens, num_islands, migration_rate, migration_interval)
 
 # After all generations are complete
 data_gatherer.add_header_to_stats()
