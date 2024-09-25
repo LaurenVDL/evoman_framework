@@ -5,8 +5,6 @@ import time
 import numpy as np
 import os
 import random
-from sklearn.cluster import DBSCAN
-from sklearn.preprocessing import StandardScaler
 
 # DataGatherer class to gather data for plotting later
 class DataGatherer:
