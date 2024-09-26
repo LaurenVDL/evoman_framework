@@ -65,17 +65,17 @@ if headless:
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 # # Check if the correct number of arguments is provided
-# if len(sys.argv) != 3:
-#     print("Usage: python EA_1.py <experiment_name> <enemy_number>")
-#     sys.exit(1)
+if len(sys.argv) != 3:
+    print("Usage: python EA_1.py <experiment_name> <enemy_number>")
+    sys.exit(1)
 
-# # Get the arguments
-# experiment_name = sys.argv[1]
-# enemy_number = int(sys.argv[2])
+# Get the arguments
+experiment_name = sys.argv[1]
+enemy_number = int(sys.argv[2])
 
 
-enemy_number = 2
-experiment_name = 'EA_1'
+# enemy_number = 2
+# experiment_name = 'EA_1'
 os.makedirs(experiment_name, exist_ok=True)
 
 n_hidden_neurons = 10

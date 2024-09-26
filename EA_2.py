@@ -64,23 +64,23 @@ headless = True
 if headless:
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
-# # Check if the correct number of arguments is provided
-# if len(sys.argv) != 3:
-#     print("Usage: python EA_1.py <experiment_name> <enemy_number>")
-#     sys.exit(1)
+# Check if the correct number of arguments is provided
+if len(sys.argv) != 3:
+    print("Usage: python EA_1.py <experiment_name> <enemy_number>")
+    sys.exit(1)
 
-# # Get the arguments
-# experiment_name = sys.argv[1]
-# enemy_number = int(sys.argv[2])
+# Get the arguments
+experiment_name = sys.argv[1]
+enemy_number = int(sys.argv[2])
 
-experiment_name = 'EA_2'
+# experiment_name = 'EA_2'
 os.makedirs(experiment_name, exist_ok=True)
 
 n_hidden_neurons = 10
 
 # Initializes simulation in individual evolution mode, for single static enemy.
 env = Environment(experiment_name=experiment_name,
-                  enemies=[5],
+                  enemies=[enemy_number],
                   playermode="ai",
                   player_controller=player_controller(n_hidden_neurons),
                   enemymode="static",
@@ -260,10 +260,6 @@ def run_island_model_EA(pop, gens, num_islands, migration_rate, migration_interv
         print(f'Generation: {generation}, Best fitness: {np.max(global_fitness)}')
         
         data_gatherer.gather(all_individuals, global_fitness, generation)
-        # # Print or log statistics (best fitness, mean fitness, standard deviation)
-        # print(f'Best fitness across all islands: {np.max(global_fitness)}')
-        # print(f'Mean fitness across all islands: {np.mean(global_fitness)}')
-        # print(f'Standard deviation of fitness: {np.std(global_fitness)}')
 
     # At the end, combine all islands to form the final population
     return np.concatenate(islands)
