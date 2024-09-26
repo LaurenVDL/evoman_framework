@@ -71,7 +71,7 @@ n_hidden_neurons = 10
 
 # Initializes simulation in individual evolution mode, for single static enemy.
 env = Environment(experiment_name=experiment_name,
-                  enemies=[8],
+                  enemies=[5],
                   playermode="ai",
                   player_controller=player_controller(n_hidden_neurons),
                   enemymode="static",
@@ -92,13 +92,13 @@ npop = 100  # Population size
 mu = 25  # Number of parents
 lambda_ = 50  # Number of children
 gens = 30  # Number of generations
-mutation_rate = 0.2
-n_points = 5  # Number of crossover points
+mutation_rate = 0.5
+n_points = 10  # Number of crossover points
 prob_c = 0.7  # Probability of crossover occurring 
 
 num_islands = 4  # Number of islands
-migration_rate = 0.1  # 10% of each island's individuals migrate
-migration_interval = 5  # Migrate every 5 generations
+migration_rate = 0.3  # 10% of each island's individuals migrate
+migration_interval = 3  # Migrate every 5 generations
 
 
 # Data Gatherer instance
