@@ -71,7 +71,7 @@ n_hidden_neurons = 10
 
 # Initializes simulation in individual evolution mode, for single static enemy.
 env = Environment(experiment_name=experiment_name,
-                  enemies=[8],
+                  enemies=[5],
                   playermode="ai",
                   player_controller=player_controller(n_hidden_neurons),
                   enemymode="static",
@@ -92,7 +92,7 @@ dom_l = -1
 mu = 100  # Number of parents
 lambda_ = 200  # Number of children
 gens = 30
-mutation_rate = 0.2
+mutation_rate = 0.5
 n_points = 5  # Number of crossover points
 prob_c = 0.7  # Probability of crossover occurring
 
@@ -189,7 +189,6 @@ fitness = evaluate(population)
 
 # Evolution loop
 for generation in range(gens):
-    print(f'Generation {generation}, Best fitness: {np.max(fitness)}')
 
     # Generate offspring population
     offspring_population = evolve_population(population, fitness)
@@ -201,6 +200,8 @@ for generation in range(gens):
     best_indices = np.argsort(offspring_fitness)[-mu:]
     population = offspring_population[best_indices]
     fitness = offspring_fitness[best_indices]
+
+    print(f'Generation {generation}, Best fitness: {np.max(fitness)}')
 
     # Gather data
     data_gatherer.gather(population, fitness, generation)
