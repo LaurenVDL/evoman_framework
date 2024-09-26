@@ -85,7 +85,7 @@ if headless:
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 
-experiment_name = 'EA2_V2'
+experiment_name = 'EA_2_V2'
 if not os.path.exists(experiment_name):
     os.makedirs(experiment_name)
 
@@ -94,11 +94,11 @@ if not os.path.exists(experiment_name):
 n_hidden_neurons=10
 npop = 100
 prob_c = 0.7 #probability for doing the crossover
-prob_m = 0.7 #probability if a mutation will accur in a individual
+mutation_rate = 0.3 #probability if a mutation will accur in a individual
 dom_u = 1
 dom_l = -1
-n_points = 5
-max_swaps = 20
+n_points = 10
+#max_swaps = 20
 min_samples= 5  #number of individuals in a cluster
 amount_generations = 30
 eps = 0.5
@@ -165,11 +165,16 @@ def apply_limits(individual):
 #     return pop
 
 # Swap mutation
-def mutation(individual):
-    if np.random.uniform(0, 1) <= prob_m:
+def mutation(individual, mutation_rate):
+    if np.random.uniform(0, 1) <= mutation_rate:
         idx1, idx2 = np.random.randint(0, len(individual), 2)
         individual[idx1], individual[idx2] = individual[idx2], individual[idx1]
     return individual
+
+def adaptive_mutation(individual, mutation_rate, generation, max_generations):
+    # Increase mutation rate as generations progress
+    adaptive_rate = mutation_rate * (1 + generation / max_generations)
+    return mutation(individual, adaptive_rate)
 
 
 # n-point crossover function
@@ -271,8 +276,8 @@ def run_generations_EA2(pop, amount_generations):
                     offspring1, offspring2 = crossover_n_point(np.array([parent1, parent2]))
                     
                     # Apply mutation (swap mutation)
-                    offspring1 = mutation(offspring1)
-                    offspring2 = mutation(offspring2)
+                    offspring1 = adaptive_mutation(offspring1, mutation_rate, i, amount_generations)
+                    offspring2 = adaptive_mutation(offspring2, mutation_rate, i, amount_generations)
                     
                     # Apply limits to offspring
                     offspring1 = apply_limits(offspring1)
