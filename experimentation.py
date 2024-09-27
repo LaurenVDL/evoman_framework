@@ -2,7 +2,7 @@ import os
 import subprocess
 
 # Set up parameters
-enemies = [5]  # You can extend this list for multiple enemies
+enemies = [1]  # You can extend this list for multiple enemies
 num_runs = 10
 
 # Main loop to run EA multiple times
