@@ -93,8 +93,9 @@ def plot_comparison(ea1_folder, ea2_folder, enemy, output_filename):
     
     print(f"Plot saved as {output_filename}")
 
-# Generate plots for enemies 1, 5, and 6
+# Generate plots for enemies 1, 3, 5, and 6
 plot_comparison('EA1_enemy1', 'EA2_enemy1', 1, 'fitness_comparison_enemy1.png')
+plot_comparison('EA1_enemy3', 'EA2_enemy3', 3, 'fitness_comparison_enemy3.png')
 plot_comparison('EA1_enemy5', 'EA2_enemy5', 5, 'fitness_comparison_enemy5.png')
 plot_comparison('EA1_enemy6', 'EA2_enemy6', 6, 'fitness_comparison_enemy6.png')
 
