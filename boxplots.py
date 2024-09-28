@@ -65,11 +65,8 @@ def create_boxplot(all_results):
     # Customize boxplot colors
     colors = ['#FF1493', '#00BFFF'] * 3  # Deep Pink for EA1, Deep Sky Blue for EA2
     for patch, color in zip(bp['boxes'], colors):
-        patch.set_color(color)
+        patch.set_facecolor(color)
         patch.set_alpha(0.7)  # Add some transparency
-    
-    # Set edge color of boxes to match face color
-    for patch, color in zip(bp['boxes'], colors):
         patch.set_edgecolor(color)
     
     # Set median lines to dark black
@@ -85,30 +82,29 @@ def create_boxplot(all_results):
         cap.set_color('black')
     
     # Add mean points
-    ax.scatter(range(1, len(all_results) + 1), means, color='yellow', s=50, zorder=3, label='Mean')
+    mean_points = ax.scatter(range(1, len(all_results) + 1), means, color='yellow', s=50, zorder=3)
     
-    # Perform Mann-Whitney U tests and add p-values to plot
-    for i in range(0, len(all_results), 2):
-        ea1_results = all_results[i]
-        ea2_results = all_results[i+1]
-        statistic, p_value = stats.mannwhitneyu(ea1_results, ea2_results, alternative='two-sided')
-        
-        ax.text((i+1.5), ax.get_ylim()[1], f'p = {p_value:.3f}', 
-                horizontalalignment='center', verticalalignment='bottom')
-        
-        # Add bracket
-        ax.annotate('', xy=(i+1, ax.get_ylim()[1]), xytext=(i+2, ax.get_ylim()[1]),
-                    arrowprops=dict(arrowstyle='-', lw=1.5))
+    # Set title with increased size and bold font
+    ax.set_title('Mean individual gain of best performing individual in EA1 and EA2', 
+                 fontsize=16, fontweight='bold')
     
-    ax.set_title('Mean individual gain of best performing individual in EA1 and EA2')
-    ax.set_xlabel('Experiment name')
-    ax.set_ylabel('Individual gain')
+    # Increase size of x and y labels
+    ax.set_xlabel('Experiment name', fontsize=13)
+    ax.set_ylabel('Individual gain', fontsize=13)
     
     # Adjust y-axis to prevent compression
     ax.set_ylim(min(min(result) for result in all_results) - 10, 
                 max(max(result) for result in all_results) + 10)
     
-    plt.legend()
+    # Add legend for EA1 and EA2 with increased font size
+    ea1_patch = plt.Rectangle((0, 0), 1, 1, fc='#FF1493', alpha=0.7, edgecolor='#FF1493')
+    ea2_patch = plt.Rectangle((0, 0), 1, 1, fc='#00BFFF', alpha=0.7, edgecolor='#00BFFF')
+    ax.legend([ea1_patch, ea2_patch, mean_points], ['EA1', 'EA2', 'Mean'], 
+              loc='upper right', bbox_to_anchor=(1, 1), fontsize=12)
+    
+    # Increase tick label font size
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    
     plt.tight_layout()
     plt.savefig('boxplot_comparison.png', dpi=300)
     plt.close()

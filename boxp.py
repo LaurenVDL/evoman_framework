@@ -115,6 +115,7 @@ for enemy in enemies:
                         enemymode="static",
                         level=2,
                         speed="fastest",
+                        randomini="yes",
                         visuals=False)
     
     for algorithm in algorithms:
@@ -172,11 +173,13 @@ for label, result in zip(labels, all_results):
 for i in range(0, len(all_results), 2):
     ea1_gains = all_results[i]
     ea2_gains = all_results[i+1]
-    t_stat, p_value = stats.ttest_ind(ea1_gains, ea2_gains)
-    enemy = enemies[i//2]
-    print(f"\nT-test results for Enemy {enemy}:")
-    print(f"t-statistic: {t_stat}")
+    u_stat, p_value = stats.mannwhitneyu(ea1_gains, ea2_gains, alternative='two-sided')
+    enemy = enemies[i//2]   
+    print(f"\nMann-Whitney U test results for Enemy {enemy}:")
+    print(f"U-statistic: {u_stat}")
     print(f"p-value: {p_value}")
+
+
 
 # # Create a boxplot
 # plt.figure(figsize=(12, 6))
