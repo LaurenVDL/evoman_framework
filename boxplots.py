@@ -38,8 +38,7 @@ def run_simulation(env, individual, num_trials=5):
         #env.state_to_log() # Reset the environment
         # random_seed = random.randint(1, 1000000)
         # env.update_parameter('random_seed', random_seed)
-        
-        # initial_energy = env.get_enemylife()
+
         f, p, e, t = env.play(pcont=individual)
         gain = p - e  # Calculate gain
         results.append(gain)
