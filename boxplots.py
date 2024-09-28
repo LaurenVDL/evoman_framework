@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from evoman.environment import Environment
 from demo_controller import player_controller
+import random
+
+headless = True
+if headless:
+    os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 def find_best_individual(algorithm, enemy):
     best_fitness = -float('inf')
@@ -28,45 +33,92 @@ def get_best_weights(algorithm, enemy, run, gen):
 
 def run_simulation(env, individual, num_trials=5):
     results = []
-    for _ in range(num_trials):
+    for i in range(num_trials):
+        # Set a new random seed for each trial
+        #env.state_to_log() # Reset the environment
+        # random_seed = random.randint(1, 1000000)
+        # env.update_parameter('random_seed', random_seed)
+        
+        # initial_energy = env.get_enemylife()
         f, p, e, t = env.play(pcont=individual)
         gain = p - e  # Calculate gain
         results.append(gain)
+        print(f"Player Energy: {p}, Enemy Energy: {e}")
+        print("Gain: ", p-e)
+        env.update_solutions([individual,f])
+        env.save_state()
+        #env.state_to_log()
+        # print(f"  Random Seed: {random_seed}")
+        
     return results
 
 def create_boxplot(all_results):
-    plt.figure(figsize=(15, 8))
-    box_data = all_results
-    positions = [1, 2, 4, 5, 7, 8]
-    labels = ['EA1\nEnemy 1', 'EA2\nEnemy 1', 'EA1\nEnemy 5', 'EA2\nEnemy 5', 'EA1\nEnemy 6', 'EA2\nEnemy 6']
+    fig, ax = plt.subplots(figsize=(12, 6))
     
-    bp = plt.boxplot(box_data, positions=positions, labels=labels, widths=0.6)
+    labels = ['EA1 E1', 'EA2 E1', 'EA1 E5', 'EA2 E5', 'EA1 E6', 'EA2 E6']
     
-    # Color the boxes
-    colors = ['lightblue', 'lightgreen'] * 3
+    # Calculate means for each set of results
+    means = [np.mean(results) for results in all_results]
+    
+    # Create boxplot
+    bp = ax.boxplot(all_results, patch_artist=True, labels=labels)
+    
+    # Customize boxplot colors
+    colors = ['#FF1493', '#00BFFF'] * 3  # Deep Pink for EA1, Deep Sky Blue for EA2
     for patch, color in zip(bp['boxes'], colors):
-        patch.set_facecolor(color)
+        patch.set_color(color)
+        patch.set_alpha(0.7)  # Add some transparency
     
-    plt.title('Gain Comparison for EA1 and EA2 across Enemies')
-    plt.ylabel('Gain (Player Energy - Enemy Energy)')
-    plt.grid(True, linestyle='--', alpha=0.7)
+    # Set edge color of boxes to match face color
+    for patch, color in zip(bp['boxes'], colors):
+        patch.set_edgecolor(color)
     
-    # Add vertical lines to separate enemy groups
-    plt.axvline(x=3, color='gray', linestyle='--')
-    plt.axvline(x=6, color='gray', linestyle='--')
+    # Set median lines to dark black
+    for median in bp['medians']:
+        median.set_color('black')
+        median.set_linewidth(2)
     
-    plt.savefig('boxplot_all_enemies.png')
+    # Customize whiskers and caps
+    for whisker in bp['whiskers']:
+        whisker.set_color('black')
+        whisker.set_linestyle('--')
+    for cap in bp['caps']:
+        cap.set_color('black')
+    
+    # Add mean points
+    ax.scatter(range(1, len(all_results) + 1), means, color='yellow', s=50, zorder=3, label='Mean')
+    
+    # Perform Mann-Whitney U tests and add p-values to plot
+    for i in range(0, len(all_results), 2):
+        ea1_results = all_results[i]
+        ea2_results = all_results[i+1]
+        statistic, p_value = stats.mannwhitneyu(ea1_results, ea2_results, alternative='two-sided')
+        
+        ax.text((i+1.5), ax.get_ylim()[1], f'p = {p_value:.3f}', 
+                horizontalalignment='center', verticalalignment='bottom')
+        
+        # Add bracket
+        ax.annotate('', xy=(i+1, ax.get_ylim()[1]), xytext=(i+2, ax.get_ylim()[1]),
+                    arrowprops=dict(arrowstyle='-', lw=1.5))
+    
+    ax.set_title('Mean individual gain of best performing individual in EA1 and EA2')
+    ax.set_xlabel('Experiment name')
+    ax.set_ylabel('Individual gain')
+    
+    # Adjust y-axis to prevent compression
+    ax.set_ylim(min(min(result) for result in all_results) - 10, 
+                max(max(result) for result in all_results) + 10)
+    
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig('boxplot_comparison.png', dpi=300)
     plt.close()
-
-def perform_t_test(ea1_results, ea2_results):
-    t_statistic, p_value = stats.ttest_ind(ea1_results, ea2_results)
-    return t_statistic, p_value
 
 def main():
     all_results = []
     
     for enemy in [1, 5, 6]:
-        print(f"Processing enemy {enemy}")
+        print(f"\nProcessing enemy {enemy}")
         
         # Set up environment
         env = Environment(enemies=[enemy],
@@ -75,6 +127,7 @@ def main():
                           enemymode="static",
                           level=2,
                           speed="fastest",
+                          randomini="yes",
                           visuals=False)
         
         # Find best individual for EA1
@@ -91,13 +144,18 @@ def main():
         # Run best individuals 5 times
         ea1_results = run_simulation(env, ea1_weights)
         ea2_results = run_simulation(env, ea2_weights)
-        
+
+        print("\nEA1 Results:")
+        print(ea1_results)
+        print("\nEA2 Results:")
+        print(ea2_results)
+
         all_results.extend([ea1_results, ea2_results])
-        
-        # Perform t-test
-        t_statistic, p_value = perform_t_test(ea1_results, ea2_results)
-        print(f"T-test results for enemy {enemy}:")
-        print(f"t-statistic: {t_statistic}")
+
+        # Perform Mann-Whitney U test
+        statistic, p_value = stats.mannwhitneyu(ea1_results, ea2_results, alternative='two-sided')
+        print(f"Mann-Whitney U test results for enemy {enemy}:")
+        print(f"Statistic: {statistic}")
         print(f"p-value: {p_value}")
         print()
 
@@ -105,7 +163,13 @@ def main():
     create_boxplot(all_results)
     print("Boxplot for all enemies created")
 
+    for i, enemy in enumerate([1, 5, 6]):
+        ea1_index = i * 2
+        ea2_index = i * 2 + 1
+        print(f"Enemy {enemy}:")
+        print(f"EA1 - Mean: {np.mean(all_results[ea1_index]):.6f}, Std: {np.std(all_results[ea1_index]):.6f}")
+        print(f"EA2 - Mean: {np.mean(all_results[ea2_index]):.6f}, Std: {np.std(all_results[ea2_index]):.6f}")
+        print()
+
 if __name__ == "__main__":
     main()
-
-

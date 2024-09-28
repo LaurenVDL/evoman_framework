@@ -94,7 +94,7 @@ if not os.path.exists(experiment_name):
 n_hidden_neurons=10
 npop = 100
 prob_c = 0.7 #probability for doing the crossover
-mutation_rate = 0.3 #probability if a mutation will accur in a individual
+mutation_rate = 0.25 #probability if a mutation will accur in a individual
 dom_u = 1
 dom_l = -1
 n_points = 10
@@ -128,7 +128,10 @@ data_gatherer = DataGatherer(experiment_name)
 
 # runs simulation
 def simulation(env,x):
+    print("individual shape: ", x.shape)
     f,p,e,t = env.play(pcont=x)
+    print(f"Player Energy: {p}, Enemy Energy: {e}")
+    print("Gain: ", p-e)
     return f
 
 
