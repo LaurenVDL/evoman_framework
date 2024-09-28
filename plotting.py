@@ -82,10 +82,10 @@ def plot_comparison(ea1_folder, ea2_folder, enemy, output_filename):
     plt.fill_between(generations, ea2_mean - ea2_std, ea2_mean + ea2_std, 
                      alpha=0.2, color='#00BFFF')
     
-    plt.title(f'EA1 vs EA2 (Enemy {enemy})')
-    plt.xlabel('Generation')
-    plt.ylabel('Fitness')
-    plt.legend()
+    plt.title(f'EA1 vs EA2 (Enemy {enemy})', fontsize=16, fontweight='bold')
+    plt.xlabel('Generation', fontsize=15)
+    plt.ylabel('Fitness', fontsize=15)
+    plt.legend(loc='lower right', fontsize=15)
     plt.grid(True, linestyle='--', alpha=0.7)
     
     plt.savefig(output_filename)
