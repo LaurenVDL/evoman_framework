@@ -13,7 +13,7 @@ Created on Fri Sep 20 16:38:55 2024
 """
 import sys, os
 
-# os.chdir('C:\\Users\\charl\\OneDrive\\Documents\\GitHub\\evoman_framework')
+os.chdir('C:\\Users\\charl\\OneDrive\\Documents\\GitHub\\evoman_framework')
 
 
 from evoman.environment import Environment
@@ -51,7 +51,7 @@ lambda_ = 200  # Number of children
 
 # initializes simulation in individual evolution mode, for single static enemy.
 env = Environment(experiment_name=experiment_name,
-                  enemies=[3],
+                  enemies=[1],
                   playermode="ai",
                   player_controller=player_controller(n_hidden_neurons),
                   enemymode="static",
@@ -98,7 +98,7 @@ def mutation(pop):
             for _ in range(num_swaps):
 
                 column1 = np.random.randint(0, n_vars)
-                individual[column1] = np.random.randint(-1, 1)
+                individual[column1] = np.random.uniform(-1, 1)
 
     return pop
 
@@ -177,7 +177,7 @@ def run_generations_EA2(pop, amount_generations):
         print('Best fitness: ', np.max(evaluate(pop)))
         print('Average fitness: ', mean(evaluate(pop)))
         # Step 2: Cluster the population
-        if i % 5 == 0:
+        if i % 10 == 0 or i ==1:
             eps = adjust_eps(i, amount_generations)
             #print(f"Adjusted epsilon for generation {i}: {eps}")
             dbscan = DBSCAN(eps=eps, min_samples=min_samples)
