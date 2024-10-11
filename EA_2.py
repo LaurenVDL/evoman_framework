@@ -64,14 +64,23 @@ headless = True
 if headless:
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
-experiment_name = 'EA_2'
+# Check if the correct number of arguments is provided
+if len(sys.argv) != 3:
+    print("Usage: python EA_1.py <experiment_name> <enemy_number>")
+    sys.exit(1)
+
+# Get the arguments
+experiment_name = sys.argv[1]
+enemy_number = int(sys.argv[2])
+
+# experiment_name = 'EA_2'
 os.makedirs(experiment_name, exist_ok=True)
 
 n_hidden_neurons = 10
 
 # Initializes simulation in individual evolution mode, for single static enemy.
 env = Environment(experiment_name=experiment_name,
-                  enemies=[8],
+                  enemies=[enemy_number],
                   playermode="ai",
                   player_controller=player_controller(n_hidden_neurons),
                   enemymode="static",
@@ -92,7 +101,7 @@ npop = 100  # Population size
 mu = 25  # Number of parents
 lambda_ = 50  # Number of children
 gens = 30  # Number of generations
-mutation_rate = 0.2
+mutation_rate = 0.25
 n_points = 5  # Number of crossover points
 prob_c = 0.7  # Probability of crossover occurring 
 
@@ -148,12 +157,25 @@ def crossover_n_point(pop):
     
     return np.array(new_population)
 
-# Swap mutation
-def swap_mutation(individual):
+# # Swap mutation
+def swap_mutation(individual, mutation_rate):
     if np.random.uniform(0, 1) <= mutation_rate:
         idx1, idx2 = np.random.randint(0, len(individual), 2)
         individual[idx1], individual[idx2] = individual[idx2], individual[idx1]
     return individual
+
+# def gaussian_mutation(individual, mutation_rate, scale=0.1):
+#     for i in range(len(individual)):
+#         if np.random.random() < mutation_rate:
+#             individual[i] += np.random.normal(0, scale)
+#     return np.clip(individual, dom_l, dom_u)
+
+
+def adaptive_mutation(individual, mutation_rate, generation, max_generations):
+    # Increase mutation rate as generations progress
+    adaptive_rate = mutation_rate * (1 + generation / max_generations)
+    return swap_mutation(individual, adaptive_rate)
+
 
 # Tournament selection
 def tournament_selection(pop, fitness):
@@ -169,9 +191,10 @@ def migrate_between_islands(islands, migration_rate):
     """Performs migration between islands."""
     num_islands = len(islands)
     num_individuals = len(islands[0])
-    
+
     # How many individuals to migrate
     num_to_migrate = int(num_individuals * migration_rate)
+
 
     # Perform circular migration (island i sends individuals to island (i+1) % num_islands)
     for i in range(num_islands):
@@ -208,8 +231,8 @@ def run_island_model_EA(pop, gens, num_islands, migration_rate, migration_interv
                 parent1 = tournament_selection(island, fitness)
                 parent2 = tournament_selection(island, fitness)
                 offspring1, offspring2 = crossover_n_point(np.array([parent1, parent2]))
-                offspring1 = swap_mutation(offspring1)
-                offspring2 = swap_mutation(offspring2)
+                offspring1 = adaptive_mutation(offspring1, mutation_rate, generation, gens)
+                offspring2 = adaptive_mutation(offspring2, mutation_rate, generation, gens)
                 offspring1 = apply_limits(offspring1)
                 offspring2 = apply_limits(offspring2)
                 
@@ -237,10 +260,6 @@ def run_island_model_EA(pop, gens, num_islands, migration_rate, migration_interv
         print(f'Generation: {generation}, Best fitness: {np.max(global_fitness)}')
         
         data_gatherer.gather(all_individuals, global_fitness, generation)
-        # # Print or log statistics (best fitness, mean fitness, standard deviation)
-        # print(f'Best fitness across all islands: {np.max(global_fitness)}')
-        # print(f'Mean fitness across all islands: {np.mean(global_fitness)}')
-        # print(f'Standard deviation of fitness: {np.std(global_fitness)}')
 
     # At the end, combine all islands to form the final population
     return np.concatenate(islands)
