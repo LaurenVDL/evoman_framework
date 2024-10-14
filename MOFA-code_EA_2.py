@@ -134,8 +134,11 @@ mutation_rate = 0.25
 n_points = 5  # Number of crossover points
 
 prob_c = 0.7  # Probability of crossover occurring
-amount_enemies=2
-
+# we make multiple pareto fronts, and the question is how many of the best parents 
+#we want to consider, is 100 if we condsider all, which might be a good point to start
+# there is also the better the front the higher the probabilty a parent will be 
+# choosen 
+amount_parents_to_consider = 100 
 population = np.random.uniform(dom_l, dom_u, (mu, n_vars))
 
 
@@ -319,7 +322,7 @@ def select_parents_nsga2(population, fitness, fronts):
 
         valid_fronts.append(front)
         total_items += len(front)
-        if total_items + len(front) >= 100:
+        if total_items + len(front) >= amount_parents_to_consider:
             
             break
     # Assign weights to each valid front based on their rank
