@@ -58,11 +58,14 @@ if len(sys.argv) != 3:
 experiment_name = sys.argv[1]
 enemy_number = int(sys.argv[2])
 
+# enemy_number = [1,4,7]
+# experiment_name = 'EA_1'
 os.makedirs(experiment_name, exist_ok=True)
 
 n_hidden_neurons = 10
 env = Environment(experiment_name=experiment_name,
-                  enemies=[enemy_number],
+                  enemies=enemy_number,
+                  multiplemode="yes",
                   playermode="ai",
                   player_controller=player_controller(n_hidden_neurons),
                   enemymode="static",
@@ -92,6 +95,22 @@ def simulation(env, x):
 
 def evaluate(x):
     return np.array(list(map(lambda y: simulation(env, y), x)))
+
+# Evaluation function for multiple objectives (enemies)
+def evaluate_multiobjective(population):
+    fitnesses = []
+    for i in range(1, 9):  # Assuming you want to evaluate against enemies 1 to 8
+        env = Environment(experiment_name=experiment_name,
+                          enemies=[i],  # Single enemy for each evaluation
+                          playermode="ai",
+                          player_controller=player_controller(n_hidden_neurons),
+                          enemymode="static",
+                          level=2,
+                          speed="fastest",
+                          visuals=False)
+        f = evaluate(population)
+        fitnesses.append(f)  # Collect fitness for each enemy (multiple objectives)
+    return np.array(fitnesses).T
 
 def crossover_n_point(pop):
     num_individuals, num_genes = pop.shape
@@ -189,8 +208,9 @@ def select_parents_nsga2(population, fitness):
         new_population.extend(population[front][sorted_indices])
     return np.array(new_population[:mu])
 
-def evolve_population(population, fitness, generation):
+def evolve_population(population, generation):
     new_population = []
+    fitness = evaluate_multiobjective(population)
     for _ in range(lambda_ // 2):
         parent1, parent2 = select_parents_nsga2(population, fitness)[:2]
         offspring1, offspring2 = crossover_n_point(np.array([parent1, parent2]))
@@ -204,7 +224,7 @@ def evolve_population(population, fitness, generation):
 
 # Initialize population
 population = np.random.uniform(dom_l, dom_u, (mu, n_vars))
-fitness = evaluate(population)
+fitness = evaluate_multiobjective(population)
 
 # Evolution loop
 for generation in range(gens):
@@ -237,7 +257,7 @@ for generation in range(gens):
     offspring_population = evolve_population(population, fitness)
     
     # Evaluate offspring population
-    offspring_fitness = evaluate(offspring_population)
+    offspring_fitness = evaluate_multiobjective(offspring_population)
     
     # Apply comma strategy: survival selection only selects from offspring (λ individuals)
     best_indices = np.argsort(offspring_fitness)[-mu:]  # Select the top mu individuals from offspring
