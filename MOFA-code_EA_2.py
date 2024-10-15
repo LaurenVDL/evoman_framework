@@ -132,7 +132,7 @@ lambda_ = 200  # Number of children
 gens = 30
 mutation_rate = 0.25
 n_points = 5  # Number of crossover points
-
+list_of_enemies = [1,2,3,4,5,6,7,8]
 prob_c = 0.7  # Probability of crossover occurring
 # we make multiple pareto fronts, and the question is how many of the best parents 
 #we want to consider, is 100 if we condsider all, which might be a good point to start
@@ -159,7 +159,7 @@ def evaluate(x,env):
 # Evaluation function for multiple objectives (enemies)
 def evaluate_multiobjective(population):
     fitnesses = []
-    for i in range(1,9):
+    for i in list_of_enemies:
         env = Environment(experiment_name=experiment_name,
                             enemies=[i],  # Multiple enemies
                             playermode="ai",
