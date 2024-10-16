@@ -37,8 +37,8 @@ class DataGatherer:
         np.savetxt(f"{self.name}/best/{gen}.out", pop[np.argmax(pop_fit)], delimiter=',', fmt='%1.2e')
 
         solutions = [pop, pop_fit]
-        env.update_solutions(solutions)
-        env.save_state()
+        # env.update_solutions(solutions)
+        # env.save_state()
 
     def add_header_to_stats(self):
         header = "Generation,Mean_Fitness,Std_Fitness,Best_Fitness\n"
@@ -51,33 +51,34 @@ headless = True
 if headless:
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
-if len(sys.argv) != 3:
-    print("Usage: python EA_1.py <experiment_name> <enemy_number>")
-    sys.exit(1)
+# if len(sys.argv) != 3:
+#     print("Usage: python EA_1.py <experiment_name> <enemy_number>")
+#     sys.exit(1)
 
-experiment_name = sys.argv[1]
-enemy_number = int(sys.argv[2])
+# experiment_name = sys.argv[1]
+# enemy_number = int(sys.argv[2])
 
-# enemy_number = [1,4,7]
-# experiment_name = 'EA_1'
+enemies = [1,4,7]
+experiment_name = 'NSGA-II_EA2_task2'
 os.makedirs(experiment_name, exist_ok=True)
 
 n_hidden_neurons = 10
-env = Environment(experiment_name=experiment_name,
-                  enemies=enemy_number,
-                  multiplemode="yes",
-                  playermode="ai",
-                  player_controller=player_controller(n_hidden_neurons),
-                  enemymode="static",
-                  level=2,
-                  speed="fastest",
-                  visuals=False)
+# env = Environment(experiment_name=experiment_name,
+#                   enemies=enemies,
+#                   multiplemode="yes",
+#                   playermode="ai",
+#                   player_controller=player_controller(n_hidden_neurons),
+#                   enemymode="static",
+#                   level=2,
+#                   speed="fastest",
+#                   visuals=False)
 
-env.state_to_log()
+# env.state_to_log()
 
 start_time = time.time()
 
-n_vars = (env.get_num_sensors() + 1) * n_hidden_neurons + (n_hidden_neurons + 1) * 5
+# n_vars = (env.get_num_sensors() + 1) * n_hidden_neurons + (n_hidden_neurons + 1) * 5
+n_vars = 265
 dom_u = 1
 dom_l = -1
 mu = 100
@@ -93,24 +94,56 @@ def simulation(env, x):
     f, p, e, t = env.play(pcont=x)
     return f
 
-def evaluate(x):
-    return np.array(list(map(lambda y: simulation(env, y), x)))
+# def evaluate(x):
+#     return np.array(list(map(lambda y: simulation(env, y), x)))
 
-# Evaluation function for multiple objectives (enemies)
+# # Evaluation function for multiple objectives (enemies)
 def evaluate_multiobjective(population):
-    fitnesses = []
-    for i in range(1, 9):  # Assuming you want to evaluate against enemies 1 to 8
+# #     # fitnesses = []
+# #     # for i in enemies:  # Assuming you want to evaluate against enemies 1 to 8
+# #     #     env = Environment(experiment_name=experiment_name,
+# #     #                       enemies=[i],  # Single enemy for each evaluation
+# #     #                       playermode="ai",
+# #     #                       player_controller=player_controller(n_hidden_neurons),
+# #     #                       enemymode="static",
+# #     #                       level=2,
+# #     #                       speed="fastest",
+# #     #                       visuals=False)
+# #     #     f, p, e, t = env.play(pcont=population)
+# #     #     # f = evaluate(population)
+# #     #     fitnesses.append(f)  # Collect fitness for each enemy (multiple objectives)
+# #     # return np.array(fitnesses).T
+    enemy_fitnesses = np.zeros((len(population), len(enemies)))  # Store fitness for each enemy
+
+    for i, enemy in enumerate(enemies):
+        # Create a new environment for each enemy in single mode
         env = Environment(experiment_name=experiment_name,
-                          enemies=[i],  # Single enemy for each evaluation
+                          enemies=[enemy],
+                          multiplemode="no",  # Single mode for each enemy
                           playermode="ai",
                           player_controller=player_controller(n_hidden_neurons),
                           enemymode="static",
                           level=2,
                           speed="fastest",
                           visuals=False)
-        f = evaluate(population)
-        fitnesses.append(f)  # Collect fitness for each enemy (multiple objectives)
-    return np.array(fitnesses).T
+        
+        env.state_to_log()  # Checks environment state
+        
+        # Evaluate fitness against the current enemy
+        for j, individual in enumerate(population):
+            fitness, p_life, e_life, time = env.play(pcont=individual)
+            enemy_fitnesses[j, i] = fitness
+
+        fitness = aggregate_fitness(enemy_fitnesses)
+        solutions = [population, fitness]
+        env.update_solutions(solutions)
+        env.save_state()
+        
+    return enemy_fitnesses
+
+# Aggregate fitness manually for single objective comparison
+def aggregate_fitness(fitnesses):
+    return np.mean(fitnesses, axis=1) - np.std(fitnesses, axis=1)
 
 def crossover_n_point(pop):
     num_individuals, num_genes = pop.shape
@@ -149,6 +182,7 @@ def swap_mutation(individual, mutation_rate):
 
 def adaptive_mutation(individual, mutation_rate, generation, max_generations):
     adaptive_rate = mutation_rate * (1 + generation / max_generations)
+    # print(f"Individual shape before mutation: {individual.shape}")
     return swap_mutation(individual, adaptive_rate)
 
 def apply_limits(individual):
@@ -208,9 +242,73 @@ def select_parents_nsga2(population, fitness):
         new_population.extend(population[front][sorted_indices])
     return np.array(new_population[:mu])
 
-def evolve_population(population, generation):
+# def evolve_population(population, generation):
+#     new_population = []
+#     fitness = evaluate(population)
+#     for _ in range(lambda_ // 2):
+#         parent1, parent2 = select_parents_nsga2(population, fitness)[:2]
+#         offspring1, offspring2 = crossover_n_point(np.array([parent1, parent2]))
+#         offspring1 = adaptive_mutation(offspring1, mutation_rate, generation, gens)
+#         offspring2 = adaptive_mutation(offspring2, mutation_rate, generation, gens)
+#         offspring1 = apply_limits(offspring1)
+#         offspring2 = apply_limits(offspring2)
+#         new_population.append(offspring1)
+#         new_population.append(offspring2)
+#     return np.array(new_population)
+
+# # Initialize population
+# population = np.random.uniform(dom_l, dom_u, (mu, n_vars))
+# fitness = evaluate(population)
+
+# # Evolution loop
+# for generation in range(gens):
+
+#     # Survival selection - NSGA-II
+
+#     # offspring_population = evolve_population(population, fitness, generation)
+#     # offspring_fitness = evaluate(offspring_population)
+    
+#     # combined_population = np.vstack((population, offspring_population))
+#     # combined_fitness = np.concatenate((fitness, offspring_fitness))
+    
+#     # fronts = fast_non_dominated_sort(combined_fitness)
+    
+#     # new_population = []
+#     # for front in fronts:
+#     #     if len(new_population) + len(front) > mu:
+#     #         distances = crowding_distance(combined_fitness[front])
+#     #         sorted_front = np.argsort(distances)[::-1]
+#     #         new_population.extend(combined_population[front][sorted_front][:mu - len(new_population)])
+#     #         break
+#     #     new_population.extend(combined_population[front])
+    
+#     # population = np.array(new_population)
+#     # fitness = evaluate(population)
+
+#     # Survival selection - COMMA 
+
+#     # Generate offspring population using evolution process
+#     offspring_population = evolve_population(population, fitness)
+    
+#     # Evaluate offspring population
+#     offspring_fitness = evaluate(offspring_population)
+    
+#     # Apply comma strategy: survival selection only selects from offspring (λ individuals)
+#     best_indices = np.argsort(offspring_fitness)[-mu:]  # Select the top mu individuals from offspring
+#     population = offspring_population[best_indices]  # Replace parent population with selected offspring
+#     fitness = offspring_fitness[best_indices]  # Update fitness for new population
+
+#     # aggregate_fitness = aggregate_fitness(fitness)
+
+#     # print(f'Generation {generation}, Best fitness: {aggregate_fitness}')
+    
+#     # print(f'Generation {generation}, Best fitness: {np.max(fitness)}')
+#     data_gatherer.gather(population, fitness, generation)
+
+# data_gatherer.add_header_to_stats()
+
+def evolve_population(population, fitness, generation):
     new_population = []
-    fitness = evaluate_multiobjective(population)
     for _ in range(lambda_ // 2):
         parent1, parent2 = select_parents_nsga2(population, fitness)[:2]
         offspring1, offspring2 = crossover_n_point(np.array([parent1, parent2]))
@@ -218,8 +316,7 @@ def evolve_population(population, generation):
         offspring2 = adaptive_mutation(offspring2, mutation_rate, generation, gens)
         offspring1 = apply_limits(offspring1)
         offspring2 = apply_limits(offspring2)
-        new_population.append(offspring1)
-        new_population.append(offspring2)
+        new_population.extend([offspring1, offspring2])
     return np.array(new_population)
 
 # Initialize population
@@ -228,44 +325,35 @@ fitness = evaluate_multiobjective(population)
 
 # Evolution loop
 for generation in range(gens):
-
-    # Survival selection - NSGA-II
-
-    # offspring_population = evolve_population(population, fitness, generation)
-    # offspring_fitness = evaluate(offspring_population)
-    
-    # combined_population = np.vstack((population, offspring_population))
-    # combined_fitness = np.concatenate((fitness, offspring_fitness))
-    
-    # fronts = fast_non_dominated_sort(combined_fitness)
-    
-    # new_population = []
-    # for front in fronts:
-    #     if len(new_population) + len(front) > mu:
-    #         distances = crowding_distance(combined_fitness[front])
-    #         sorted_front = np.argsort(distances)[::-1]
-    #         new_population.extend(combined_population[front][sorted_front][:mu - len(new_population)])
-    #         break
-    #     new_population.extend(combined_population[front])
-    
-    # population = np.array(new_population)
-    # fitness = evaluate(population)
-
-    # Survival selection - COMMA 
-
-    # Generate offspring population using evolution process
-    offspring_population = evolve_population(population, fitness)
-    
-    # Evaluate offspring population
+    offspring_population = evolve_population(population, fitness, generation)
     offspring_fitness = evaluate_multiobjective(offspring_population)
     
-    # Apply comma strategy: survival selection only selects from offspring (λ individuals)
-    best_indices = np.argsort(offspring_fitness)[-mu:]  # Select the top mu individuals from offspring
-    population = offspring_population[best_indices]  # Replace parent population with selected offspring
-    fitness = offspring_fitness[best_indices]  # Update fitness for new population
+    combined_population = np.vstack((population, offspring_population))
+    combined_fitness = np.vstack((fitness, offspring_fitness))
     
-    print(f'Generation {generation}, Best fitness: {np.max(fitness)}')
-    data_gatherer.gather(population, fitness, generation)
+    fronts = fast_non_dominated_sort(combined_fitness)
+    
+    new_population = []
+    new_fitness = []
+    for front in fronts:
+        if len(new_population) + len(front) > mu:
+            distances = crowding_distance(combined_fitness[front])
+            sorted_indices = np.argsort(distances)[::-1]
+            selected = sorted_indices[:mu - len(new_population)]
+            new_population.extend(combined_population[front][selected])
+            new_fitness.extend(combined_fitness[front][selected])
+            break
+        new_population.extend(combined_population[front])
+        new_fitness.extend(combined_fitness[front])
+    
+    population = np.array(new_population[:mu])
+    fitness = np.array(new_fitness[:mu])
+
+    # Calculate aggregate fitness for reporting
+    agg_fitness = aggregate_fitness(fitness)
+    
+    print(f'Generation {generation}, Best aggregate fitness: {np.max(agg_fitness)}')
+    data_gatherer.gather(population, agg_fitness, generation)
 
 data_gatherer.add_header_to_stats()
 end_time = time.time()
@@ -275,4 +363,4 @@ execution_time = end_time - start_time
 print(f"Execution Time: {execution_time:.2f} seconds")
 print("Evolution completed!")
 
-env.state_to_log()
+# env.state_to_log()

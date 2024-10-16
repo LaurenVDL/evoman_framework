@@ -6,7 +6,7 @@ Created on Fri Oct 11 13:44:36 2024
 """
 
 import os
-os.chdir('C:\\Users\\charl\\OneDrive\\Documents\\GitHub\\evoman_framework')
+# os.chdir('C:\\Users\\charl\\OneDrive\\Documents\\GitHub\\evoman_framework')
 
 
 import sys
@@ -21,65 +21,65 @@ import random
 
 
 
-# # DataGatherer class to gather data for plotting later
-# class DataGatherer:
-#     def _init_(self, name):
-#         self.name = name
-#         self.mean_fitness = np.array([])  # Now this will store multi-objective values
-#         self.std_fitness = np.array([])
-#         self.best_fitness = np.array([])
-#         self.generations = np.array([])
-#         self.best_gen = -1  # Generation where best solution is found
-#         self.stats = []
+# DataGatherer class to gather data for plotting later
+class DataGatherer:
+    def _init_(self, name):
+        self.name = name
+        self.mean_fitness = np.array([])  # Now this will store multi-objective values
+        self.std_fitness = np.array([])
+        self.best_fitness = np.array([])
+        self.generations = np.array([])
+        self.best_gen = -1  # Generation where best solution is found
+        self.stats = []
         
-#         # Create main directory and 'best' subdirectory
-#         os.makedirs(os.path.join(name, "best"), exist_ok=True)
+        # Create main directory and 'best' subdirectory
+        os.makedirs(os.path.join(name, "best"), exist_ok=True)
 
-#     def gather(self, pop, pop_fit, gen):
-#         #With axis=0: You track how the population performs against each enemy (objective) individually
-#         current_mean = np.mean(pop_fit, axis=0)  # Mean fitness per enemy (per objective)
-#         current_std = np.std(pop_fit, axis=0)    # Standard deviation per enemy (per objective)
-#         current_best = np.max(pop_fit, axis=0)   # Best fitness per enemy (per objective)
+    def gather(self, pop, pop_fit, gen):
+        #With axis=0: You track how the population performs against each enemy (objective) individually
+        current_mean = np.mean(pop_fit, axis=0)  # Mean fitness per enemy (per objective)
+        current_std = np.std(pop_fit, axis=0)    # Standard deviation per enemy (per objective)
+        current_best = np.max(pop_fit, axis=0)   # Best fitness per enemy (per objective)
 
-#         #Without axis=0: You aggregate the performance across all enemies and track only a single value per generation
-#         #current_mean = np.mean(np.mean(pop_fit, axis=1))  # Average fitness across all enemies and all individuals
-#         #current_std = np.std(np.mean(pop_fit, axis=1))    # Standard deviation of the mean fitness across all enemies
-#         #current_best = np.max(np.mean(pop_fit, axis=1))   # Best individual performance across enemies
+        #Without axis=0: You aggregate the performance across all enemies and track only a single value per generation
+        #current_mean = np.mean(np.mean(pop_fit, axis=1))  # Average fitness across all enemies and all individuals
+        #current_std = np.std(np.mean(pop_fit, axis=1))    # Standard deviation of the mean fitness across all enemies
+        #current_best = np.max(np.mean(pop_fit, axis=1))   # Best individual performance across enemies
 
         
-#         self.mean_fitness = np.concatenate([self.mean_fitness, [current_mean]])
-#         self.std_fitness = np.concatenate([self.std_fitness, [current_std]])
-#         self.best_fitness = np.concatenate([self.best_fitness, [current_best]])
-#         self.generations = np.concatenate([self.generations, [gen]])
+        self.mean_fitness = np.concatenate([self.mean_fitness, [current_mean]])
+        self.std_fitness = np.concatenate([self.std_fitness, [current_std]])
+        self.best_fitness = np.concatenate([self.best_fitness, [current_best]])
+        self.generations = np.concatenate([self.generations, [gen]])
 
-#         # Update the generation with the best solution if new best is found
-#         if current_best.max() >= np.max(self.best_fitness):
-#             self.best_gen = gen
+        # Update the generation with the best solution if new best is found
+        if current_best.max() >= np.max(self.best_fitness):
+            self.best_gen = gen
 
-#         # Stack the gathered data
-#         self.stats = np.stack([self.generations, self.mean_fitness, self.std_fitness, self.best_fitness])
+        # Stack the gathered data
+        self.stats = np.stack([self.generations, self.mean_fitness, self.std_fitness, self.best_fitness])
 
-#         # Save stats without header
-#         np.savetxt(f"{self.name}/stats.out", self.stats.T, delimiter=',', fmt='%.6f')
+        # Save stats without header
+        np.savetxt(f"{self.name}/stats.out", self.stats.T, delimiter=',', fmt='%.6f')
 
-#         # Save best solution
-#         np.savetxt(f"{self.name}/best/{gen}.out", pop[np.argmax(pop_fit[:,0])], delimiter=',', fmt='%1.2e')
+        # Save best solution
+        np.savetxt(f"{self.name}/best/{gen}.out", pop[np.argmax(pop_fit[:,0])], delimiter=',', fmt='%1.2e')
 
-#         # Save the simulation state for future evaluation
-#         solutions = [pop, pop_fit]
-#         env.update_solutions(solutions)
-#         env.save_state()
+        # Save the simulation state for future evaluation
+        solutions = [pop, pop_fit]
+        env.update_solutions(solutions)
+        env.save_state()
 
-#     def add_header_to_stats(self):
-#         header = "Generation,Mean_Fitness,Std_Fitness,Best_Fitness\n"
+    def add_header_to_stats(self):
+        header = "Generation,Mean_Fitness,Std_Fitness,Best_Fitness\n"
         
-#         # Read existing content
-#         with open(f"{self.name}/stats.out", 'r') as f:
-#             content = f.read()
+        # Read existing content
+        with open(f"{self.name}/stats.out", 'r') as f:
+            content = f.read()
         
-#         # Write header and content
-#         with open(f"{self.name}/stats.out", 'w') as f:
-#             f.write(header + content)
+        # Write header and content
+        with open(f"{self.name}/stats.out", 'w') as f:
+            f.write(header + content)
 
 
 # Set headless mode for faster simulation
@@ -99,14 +99,16 @@ if headless:
 # os.makedirs(experiment_name, exist_ok=True)
 
 n_hidden_neurons = 10
-experiment_name = 'dummy_demo'
+experiment_name = 'MOFA_EA2_task2'
 if not os.path.exists(experiment_name):
     os.makedirs(experiment_name)
 
+enemies = [1,4,7]
 
 # Initializes simulation in individual evolution mode, for multiple static enemies.
 env = Environment(experiment_name=experiment_name,
-                    enemies=[1],  # Multiple enemies
+                    enemies=enemies,  # Multiple enemies
+                    multiplemode="yes",
                     playermode="ai",
                     player_controller=player_controller(n_hidden_neurons),
                     enemymode="static",
@@ -143,7 +145,8 @@ population = np.random.uniform(dom_l, dom_u, (mu, n_vars))
 
 
 # Data Gatherer instance
-#data_gatherer = DataGatherer(experiment_name)
+data_gatherer = DataGatherer(experiment_name)
+
 
 # Simulation function
 def simulation(env, x):
@@ -459,21 +462,21 @@ for generation in range(gens):
     # Generate offspring population
 
         
-#     data_gatherer.gather(population, fitness, generation)
+    data_gatherer.gather(population, uitslag, generation)
 
-# # After all generations are complete
-# data_gatherer.add_header_to_stats()
+# After all generations are complete
+data_gatherer.add_header_to_stats()
 
-# # Track the end time
-# end_time = time.time()
+# Track the end time
+end_time = time.time()
 
-# # Log the generation where the best solution was found
-# print(f"Best solution found at generation: {data_gatherer.best_gen}")
+# Log the generation where the best solution was found
+print(f"Best solution found at generation: {data_gatherer.best_gen}")
 
-# # Calculate and print total execution time
-# execution_time = end_time - start_time
-# print(f"Execution Time: {execution_time:.2f} seconds")
+# Calculate and print total execution time
+execution_time = end_time - start_time
+print(f"Execution Time: {execution_time:.2f} seconds")
 
-# print("Evolution completed!")
+print("Evolution completed!")
 
-# env.state_to_log()  # Checks  state
+env.state_to_log()  # Checks  state
