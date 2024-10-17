@@ -71,8 +71,10 @@ if headless:
 
 # # Get the arguments
 experiment_name = sys.argv[1]
-enemies = sys.argv[2]
+enemies = sys.argv[2].split(',')  # Split the string into a list
 
+# Convert the list of strings to integers
+enemies = list(map(int, enemies))  # Convert to integers
 
 # enemies = [2,3,4]
 # experiment_name = 'EA_1_task2'
