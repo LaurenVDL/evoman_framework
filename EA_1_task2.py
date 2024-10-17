@@ -70,19 +70,19 @@ if headless:
 #     sys.exit(1)
 
 # # Get the arguments
-# experiment_name = sys.argv[1]
-# enemy_number = int(sys.argv[2])
+experiment_name = sys.argv[1]
+enemies = sys.argv[2]
 
 
-enemy_number = [1,4,7]
-experiment_name = 'EA_1_task2'
+# enemies = [2,3,4]
+# experiment_name = 'EA_1_task2'
 os.makedirs(experiment_name, exist_ok=True)
 
 n_hidden_neurons = 10
 
 # Initializes simulation in individual evolution mode, for single static enemy.
 env = Environment(experiment_name=experiment_name,
-                  enemies=enemy_number,
+                  enemies=enemies,
                   multiplemode="yes",
                   playermode="ai",
                   player_controller=player_controller(n_hidden_neurons),
@@ -104,10 +104,10 @@ dom_l = -1
 mu = 100  # Number of parents
 lambda_ = 200  # Number of children
 gens = 30
-mutation_rate = 0.25
-n_points = 5  # Number of crossover points
-prob_c = 0.7  # Probability of crossover occurring
-
+mutation_rate = 0.2    # 0.25 0.5 0.3 0.2 0.2 0.2 0.2 0.25 0.2
+n_points = 15          # 5 10 15 15 20 10 5 5 15       # Number of crossover points
+prob_c = 0.8           # 0.7 0.8 0.6 0.8 0.9 0.7 0.7 0.7 0.8        # Probability of crossover occurring
+                      # 74 73.5 56.09 78.06 72.4 60.9 69.7 87.0 88.2
 # Data Gatherer instance
 data_gatherer = DataGatherer(experiment_name)
 
@@ -207,9 +207,11 @@ def evolve_population(population, fitness):
     
     return np.array(new_population)
 
+
 # Initialize population
 population = np.random.uniform(dom_l, dom_u, (mu, n_vars))
 fitness = evaluate(population)
+
 
 # Evolution loop
 for generation in range(gens):

@@ -58,7 +58,7 @@ if headless:
 # experiment_name = sys.argv[1]
 # enemy_number = int(sys.argv[2])
 
-enemies = [1,4,7]
+enemies = [2,3,4]
 experiment_name = 'NSGA-II_EA2_task2'
 os.makedirs(experiment_name, exist_ok=True)
 
@@ -84,9 +84,10 @@ dom_l = -1
 mu = 100
 lambda_ = 200
 gens = 30
-mutation_rate = 0.25
-n_points = 5
-prob_c = 0.7
+mutation_rate = 0.2   # 0.25 0.5 0.2|| 0.3 0.4 0.2 0.25 0.35 0.4 0.2
+n_points = 15         # 5 10 15|| 15 15 15 15 15 15 15
+prob_c = 0.8          # 0.7 0.8 0.8|| 0.85 0.9 0.8 0.85 0.85 0.9 0.8
+                     # 55.45 77.5 56.19|| 84.06 88.75 90.77 69.76 74.95 79.97 90.29
 
 data_gatherer = DataGatherer(experiment_name)
 
@@ -143,7 +144,8 @@ def evaluate_multiobjective(population):
 
 # Aggregate fitness manually for single objective comparison
 def aggregate_fitness(fitnesses):
-    return np.mean(fitnesses, axis=1) - np.std(fitnesses, axis=1)
+    return np.mean(fitnesses, axis=1)
+    #return np.mean(fitnesses, axis=1) - np.std(fitnesses, axis=1)
 
 def crossover_n_point(pop):
     num_individuals, num_genes = pop.shape
@@ -221,6 +223,16 @@ def fast_non_dominated_sort(fitness):
     
     return fronts[:-1]
 
+# def crowding_distance(fitness):
+#     distances = np.zeros(fitness.shape[0])
+#     for m in range(fitness.shape[1]):
+#         sorted_indices = np.argsort(fitness[:, m])
+#         min_value = fitness[sorted_indices[0], m]
+#         max_value = fitness[sorted_indices[-1], m]
+#         distances[sorted_indices[0]] = distances[sorted_indices[-1]] = np.inf
+#         for i in range(1, len(sorted_indices) - 1):
+#             distances[sorted_indices[i]] += (fitness[sorted_indices[i + 1], m] - fitness[sorted_indices[i - 1], m]) / (max_value - min_value + 1e-9)
+#     return distances
 def crowding_distance(fitness):
     distances = np.zeros(fitness.shape[0])
     for m in range(fitness.shape[1]):
@@ -229,7 +241,10 @@ def crowding_distance(fitness):
         max_value = fitness[sorted_indices[-1], m]
         distances[sorted_indices[0]] = distances[sorted_indices[-1]] = np.inf
         for i in range(1, len(sorted_indices) - 1):
-            distances[sorted_indices[i]] += (fitness[sorted_indices[i + 1], m] - fitness[sorted_indices[i - 1], m]) / (max_value - min_value + 1e-9)
+            if max_value - min_value > 1e-9:  # Avoid division by zero
+                distances[sorted_indices[i]] += (fitness[sorted_indices[i + 1], m] - fitness[sorted_indices[i - 1], m]) / (max_value - min_value)
+            else:
+                distances[sorted_indices[i]] = np.inf  # Assign high distance if all values are the same
     return distances
 
 # Parent selection function using NSGA-II fast non-dominated sorting and crowding distance
@@ -238,6 +253,7 @@ def select_parents_nsga2(population, fitness):
     new_population = []
     for front in fronts:
         distances = crowding_distance(fitness[front])
+        #print(f"Front: {front}, Distances: {distances}")  # Debugging line
         sorted_indices = np.argsort(distances)[::-1]
         new_population.extend(population[front][sorted_indices])
     return np.array(new_population[:mu])
@@ -327,27 +343,33 @@ fitness = evaluate_multiobjective(population)
 for generation in range(gens):
     offspring_population = evolve_population(population, fitness, generation)
     offspring_fitness = evaluate_multiobjective(offspring_population)
+
+    # Apply comma strategy: survival selection only selects from offspring (λ individuals)
+    agg_offspring_fitness = aggregate_fitness(offspring_fitness)
+    best_indices = np.argsort(agg_offspring_fitness)[-mu:]  # Select the top mu individuals from offspring
+    population = offspring_population[best_indices]  # Replace parent population with selected offspring
+    fitness = offspring_fitness[best_indices]  # Keep the multi-objective fitness for selected offspring
     
-    combined_population = np.vstack((population, offspring_population))
-    combined_fitness = np.vstack((fitness, offspring_fitness))
+    # combined_population = np.vstack((population, offspring_population))
+    # combined_fitness = np.vstack((fitness, offspring_fitness))
     
-    fronts = fast_non_dominated_sort(combined_fitness)
+    # fronts = fast_non_dominated_sort(combined_fitness)
     
-    new_population = []
-    new_fitness = []
-    for front in fronts:
-        if len(new_population) + len(front) > mu:
-            distances = crowding_distance(combined_fitness[front])
-            sorted_indices = np.argsort(distances)[::-1]
-            selected = sorted_indices[:mu - len(new_population)]
-            new_population.extend(combined_population[front][selected])
-            new_fitness.extend(combined_fitness[front][selected])
-            break
-        new_population.extend(combined_population[front])
-        new_fitness.extend(combined_fitness[front])
+    # new_population = []
+    # new_fitness = []
+    # for front in fronts:
+    #     if len(new_population) + len(front) > mu:
+    #         distances = crowding_distance(combined_fitness[front])
+    #         sorted_indices = np.argsort(distances)[::-1]
+    #         selected = sorted_indices[:mu - len(new_population)]
+    #         new_population.extend(combined_population[front][selected])
+    #         new_fitness.extend(combined_fitness[front][selected])
+    #         break
+    #     new_population.extend(combined_population[front])
+    #     new_fitness.extend(combined_fitness[front])
     
-    population = np.array(new_population[:mu])
-    fitness = np.array(new_fitness[:mu])
+    # population = np.array(new_population[:mu])
+    # fitness = np.array(new_fitness[:mu])
 
     # Calculate aggregate fitness for reporting
     agg_fitness = aggregate_fitness(fitness)

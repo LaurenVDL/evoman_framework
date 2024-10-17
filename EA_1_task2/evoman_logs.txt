@@ -14,9 +14,9 @@ MESSAGE: Pygame initialized for simulation.
 
 multiple mode: yes
 
-enemies list: 1 4 7
+enemies list: 2 3 4
 
-current enemy: 1
+current enemy: 2
 
 player mode: ai
 
@@ -120,9 +120,9 @@ MESSAGE: state has been saved to files.
 
 multiple mode: yes
 
-enemies list: 1 4 7
+enemies list: 2 3 4
 
-current enemy: 7
+current enemy: 4
 
 player mode: ai
 
