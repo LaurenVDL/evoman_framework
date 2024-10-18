@@ -82,6 +82,8 @@ def plot_comparison(ea1_folder, ea2_folder, enemy, output_filename):
     plt.fill_between(generations, ea2_mean - ea2_std, ea2_mean + ea2_std, 
                      alpha=0.2, color='#00BFFF')
     
+    enemy = ','.join(map(str, enemy))        # for group of enemies
+    
     plt.title(f'EA1 vs EA2 (Enemy {enemy})', fontsize=16, fontweight='bold')
     plt.xlabel('Generation', fontsize=15)
     plt.ylabel('Fitness', fontsize=15)
@@ -94,8 +96,11 @@ def plot_comparison(ea1_folder, ea2_folder, enemy, output_filename):
     print(f"Plot saved as {output_filename}")
 
 # Generate plots for enemies 1, 3, 5, and 6
-plot_comparison('EA1_enemy1', 'EA2_enemy1', 1, 'fitness_comparison_enemy1.png')
-plot_comparison('EA1_enemy3', 'EA2_enemy3', 3, 'fitness_comparison_enemy3.png')
-plot_comparison('EA1_enemy5', 'EA2_enemy5', 5, 'fitness_comparison_enemy5.png')
-plot_comparison('EA1_enemy6', 'EA2_enemy6', 6, 'fitness_comparison_enemy6.png')
+# plot_comparison('EA1_enemy1', 'EA2_enemy1', 1, 'fitness_comparison_enemy1.png')
+# plot_comparison('EA1_enemy3', 'EA2_enemy3', 3, 'fitness_comparison_enemy3.png')
+# plot_comparison('EA1_enemy5', 'EA2_enemy5', 5, 'fitness_comparison_enemy5.png')
+# plot_comparison('EA1_enemy6', 'EA2_enemy6', 6, 'fitness_comparison_enemy6.png')
+
+plot_comparison('EA1_task2_egroup1', 'EA2_task2_egroup1', [2,3,4], 'fitness_comparison_enemyGroup1.png')
+plot_comparison('EA1_task2_egroup2', 'EA2_task2_egroup2', [1,5,6,7,8], 'fitness_comparison_enemyGroup2.png')
 
