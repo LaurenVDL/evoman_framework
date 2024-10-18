@@ -54,7 +54,8 @@ def run_simulation(env, individual, num_trials=5):
 def create_boxplot(all_results):
     fig, ax = plt.subplots(figsize=(12, 6))
     
-    labels = ['EA1 E1', 'EA2 E1', 'EA1 E5', 'EA2 E5', 'EA1 E6', 'EA2 E6']
+    #labels = ['EA1 E1', 'EA2 E1', 'EA1 E5', 'EA2 E5', 'EA1 E6', 'EA2 E6']
+    labels = ['EA1 G1', 'EA2 G2', 'EA1 G2', 'EA2 G2']               # group of enemies
     
     # Calculate means for each set of results
     means = [np.mean(results) for results in all_results]
