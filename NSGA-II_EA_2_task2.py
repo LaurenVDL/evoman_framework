@@ -51,15 +51,19 @@ headless = True
 if headless:
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
-# if len(sys.argv) != 3:
-#     print("Usage: python EA_1.py <experiment_name> <enemy_number>")
-#     sys.exit(1)
+if len(sys.argv) != 3:
+    print("Usage: python EA_1.py <experiment_name> <enemy_number>")
+    sys.exit(1)
 
-# experiment_name = sys.argv[1]
-# enemy_number = int(sys.argv[2])
+# # Get the arguments
+experiment_name = sys.argv[1]
+enemies = sys.argv[2].split(',')  # Split the string into a list
 
-enemies = [2,3,4]
-experiment_name = 'NSGA-II_EA2_task2'
+# Convert the list of strings to integers
+enemies = list(map(int, enemies))  # Convert to integers
+
+# enemies = [2,3,4]
+# experiment_name = 'NSGA-II_EA2_task2'
 os.makedirs(experiment_name, exist_ok=True)
 
 n_hidden_neurons = 10

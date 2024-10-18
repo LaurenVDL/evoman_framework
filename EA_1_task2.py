@@ -64,10 +64,10 @@ headless = True
 if headless:
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
-# # # Check if the correct number of arguments is provided
-# if len(sys.argv) != 3:
-#     print("Usage: python EA_1.py <experiment_name> <enemy_number>")
-#     sys.exit(1)
+# # Check if the correct number of arguments is provided
+if len(sys.argv) != 3:
+    print("Usage: python EA_1.py <experiment_name> <enemy_number>")
+    sys.exit(1)
 
 # # Get the arguments
 experiment_name = sys.argv[1]

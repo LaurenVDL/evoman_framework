@@ -9,7 +9,7 @@ num_runs = 10
 # Main loop to run EA multiple times
 #for enemy in enemies:
 for i in range(len(enemy_groups)):
-    ea_folder = f"EA1_task2_egroup{i+1}"
+    ea_folder = f"EA2_task2_egroup{i+1}"
     os.makedirs(ea_folder, exist_ok=True)
 
     # Convert the list to a comma-separated string
@@ -19,10 +19,10 @@ for i in range(len(enemy_groups)):
         experiment_name = f"{ea_folder}/R{run}"
         # os.makedirs(experiment_name, exist_ok=True)
         
-        print(f"Running EA1 against group {i+1}, run {run}")
+        print(f"Running EA2 against group {i+1}, run {run}")
         
         # Run the EA script with the current experiment name
-        subprocess.run(["python", "EA_1_task2.py", experiment_name, enemies_str])
+        subprocess.run(["python", "NSGA-II_EA_2_task2.py", experiment_name, enemies_str])
 
 print("All runs completed.")
 
