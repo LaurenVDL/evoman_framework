@@ -104,20 +104,6 @@ def simulation(env, x):
 
 # # Evaluation function for multiple objectives (enemies)
 def evaluate_multiobjective(population):
-# #     # fitnesses = []
-# #     # for i in enemies:  # Assuming you want to evaluate against enemies 1 to 8
-# #     #     env = Environment(experiment_name=experiment_name,
-# #     #                       enemies=[i],  # Single enemy for each evaluation
-# #     #                       playermode="ai",
-# #     #                       player_controller=player_controller(n_hidden_neurons),
-# #     #                       enemymode="static",
-# #     #                       level=2,
-# #     #                       speed="fastest",
-# #     #                       visuals=False)
-# #     #     f, p, e, t = env.play(pcont=population)
-# #     #     # f = evaluate(population)
-# #     #     fitnesses.append(f)  # Collect fitness for each enemy (multiple objectives)
-# #     # return np.array(fitnesses).T
     enemy_fitnesses = np.zeros((len(population), len(enemies)))  # Store fitness for each enemy
 
     for i, enemy in enumerate(enemies):
@@ -262,71 +248,7 @@ def select_parents_nsga2(population, fitness):
         new_population.extend(population[front][sorted_indices])
     return np.array(new_population[:mu])
 
-# def evolve_population(population, generation):
-#     new_population = []
-#     fitness = evaluate(population)
-#     for _ in range(lambda_ // 2):
-#         parent1, parent2 = select_parents_nsga2(population, fitness)[:2]
-#         offspring1, offspring2 = crossover_n_point(np.array([parent1, parent2]))
-#         offspring1 = adaptive_mutation(offspring1, mutation_rate, generation, gens)
-#         offspring2 = adaptive_mutation(offspring2, mutation_rate, generation, gens)
-#         offspring1 = apply_limits(offspring1)
-#         offspring2 = apply_limits(offspring2)
-#         new_population.append(offspring1)
-#         new_population.append(offspring2)
-#     return np.array(new_population)
-
-# # Initialize population
-# population = np.random.uniform(dom_l, dom_u, (mu, n_vars))
-# fitness = evaluate(population)
-
-# # Evolution loop
-# for generation in range(gens):
-
-#     # Survival selection - NSGA-II
-
-#     # offspring_population = evolve_population(population, fitness, generation)
-#     # offspring_fitness = evaluate(offspring_population)
-    
-#     # combined_population = np.vstack((population, offspring_population))
-#     # combined_fitness = np.concatenate((fitness, offspring_fitness))
-    
-#     # fronts = fast_non_dominated_sort(combined_fitness)
-    
-#     # new_population = []
-#     # for front in fronts:
-#     #     if len(new_population) + len(front) > mu:
-#     #         distances = crowding_distance(combined_fitness[front])
-#     #         sorted_front = np.argsort(distances)[::-1]
-#     #         new_population.extend(combined_population[front][sorted_front][:mu - len(new_population)])
-#     #         break
-#     #     new_population.extend(combined_population[front])
-    
-#     # population = np.array(new_population)
-#     # fitness = evaluate(population)
-
-#     # Survival selection - COMMA 
-
-#     # Generate offspring population using evolution process
-#     offspring_population = evolve_population(population, fitness)
-    
-#     # Evaluate offspring population
-#     offspring_fitness = evaluate(offspring_population)
-    
-#     # Apply comma strategy: survival selection only selects from offspring (λ individuals)
-#     best_indices = np.argsort(offspring_fitness)[-mu:]  # Select the top mu individuals from offspring
-#     population = offspring_population[best_indices]  # Replace parent population with selected offspring
-#     fitness = offspring_fitness[best_indices]  # Update fitness for new population
-
-#     # aggregate_fitness = aggregate_fitness(fitness)
-
-#     # print(f'Generation {generation}, Best fitness: {aggregate_fitness}')
-    
-#     # print(f'Generation {generation}, Best fitness: {np.max(fitness)}')
-#     data_gatherer.gather(population, fitness, generation)
-
-# data_gatherer.add_header_to_stats()
-
+# Main evolution function
 def evolve_population(population, fitness, generation):
     new_population = []
     for _ in range(lambda_ // 2):
@@ -353,27 +275,6 @@ for generation in range(gens):
     best_indices = np.argsort(agg_offspring_fitness)[-mu:]  # Select the top mu individuals from offspring
     population = offspring_population[best_indices]  # Replace parent population with selected offspring
     fitness = offspring_fitness[best_indices]  # Keep the multi-objective fitness for selected offspring
-    
-    # combined_population = np.vstack((population, offspring_population))
-    # combined_fitness = np.vstack((fitness, offspring_fitness))
-    
-    # fronts = fast_non_dominated_sort(combined_fitness)
-    
-    # new_population = []
-    # new_fitness = []
-    # for front in fronts:
-    #     if len(new_population) + len(front) > mu:
-    #         distances = crowding_distance(combined_fitness[front])
-    #         sorted_indices = np.argsort(distances)[::-1]
-    #         selected = sorted_indices[:mu - len(new_population)]
-    #         new_population.extend(combined_population[front][selected])
-    #         new_fitness.extend(combined_fitness[front][selected])
-    #         break
-    #     new_population.extend(combined_population[front])
-    #     new_fitness.extend(combined_fitness[front])
-    
-    # population = np.array(new_population[:mu])
-    # fitness = np.array(new_fitness[:mu])
 
     # Calculate aggregate fitness for reporting
     agg_fitness = aggregate_fitness(fitness)
