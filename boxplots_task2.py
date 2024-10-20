@@ -153,10 +153,15 @@ def main():
     for i in range(0, len(all_results), 2):
         ea1_gains = all_results[i]
         ea2_gains = all_results[i+1]
-        statistic, p_value = stats.mannwhitneyu(ea1_gains, ea2_gains, alternative='two-sided')
-        print(f"\nMann-Whitney U test results for Group {i//2 + 1}:")
-        print(f"Statistic: {statistic}")
+        # Perform independent t-test
+        t_statistic, p_value = stats.ttest_ind(ea1_gains, ea2_gains, equal_var=False)  # Use equal_var=False for Welch's t-test
+        print(f"\nT-Test results for Group {i//2 + 1}:")
+        print(f"T-Statistic: {t_statistic}")
         print(f"p-value: {p_value}")
+        # statistic, p_value = stats.mannwhitneyu(ea1_gains, ea2_gains, alternative='two-sided')
+        # print(f"\nMann-Whitney U test results for Group {i//2 + 1}:")
+        # print(f"Statistic: {statistic}")
+        # print(f"p-value: {p_value}")
 
     # Print summary statistics
     for i, results in enumerate(all_results):
@@ -164,6 +169,8 @@ def main():
         group = i // 2 + 1
         print(f"\n{algorithm} Group {group}:")
         print(f"Mean: {np.mean(results):.6f}, Std: {np.std(results):.6f}")
+
+    
 
 if __name__ == "__main__":
     main()
